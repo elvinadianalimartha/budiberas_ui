@@ -1,9 +1,7 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:skripsi_budiberas_9701/pages/main/transaction_page.dart';
+import 'package:skripsi_budiberas_9701/views/main/transaction_page.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 
@@ -26,58 +24,57 @@ class _MainPageState extends State<MainPage> {
       return Container(
         decoration: BoxDecoration(
           boxShadow: <BoxShadow> [
-            BoxShadow(color: Color(0xff2895BD).withOpacity(0.3), blurRadius: 20.0),
+            BoxShadow(color: const Color(0xff2895BD).withOpacity(0.3), blurRadius: 20.0),
           ]
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)), //melengkung bagian atasnya aja, yg bawah engga
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)), //melengkung bagian atasnya aja, yg bawah engga
           child: BottomNavigationBar(
                 currentIndex: pageProvider.currentIndex,
                 onTap: (value) {
-                  print(value);
                   pageProvider.currentIndex = value;
                 },
                 type: BottomNavigationBarType.fixed, //untuk mengembalikan posisi icon spy pas di tengah
                 items: [
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
                           child: Image.asset(
                             'assets/icon_home.png',
                             width: 21,
-                            color: pageProvider.currentIndex == 0 ? secondaryColor : Color(0xff999999),
+                            color: pageProvider.currentIndex == 0 ? secondaryColor : secondaryTextColor,
                           )
                       ),
                       label: 'Beranda'
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
                           child: Image.asset(
                             'assets/icon_chat.png',
                             width: 22,
-                            color: pageProvider.currentIndex == 1 ? secondaryColor : Color(0xff999999),
+                            color: pageProvider.currentIndex == 1 ? secondaryColor : secondaryTextColor,
                           )
                       ),
                       label: 'Obrolan'
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
                           child: Image.asset(
                             'assets/icon_cart.png',
                             width: 20,
-                            color: pageProvider.currentIndex == 2 ? secondaryColor : Color(0xff999999),)
+                            color: pageProvider.currentIndex == 2 ? secondaryColor : secondaryTextColor,)
                       ),
                       label: 'Keranjang'
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
                           child: Image.asset(
                             'assets/icon_transaction.png',
                             width: 20,
-                            color: pageProvider.currentIndex == 3 ? secondaryColor : Color(0xff999999),)
+                            color: pageProvider.currentIndex == 3 ? secondaryColor : secondaryTextColor,)
                       ),
                       label: 'Transaksi'
                   ),
