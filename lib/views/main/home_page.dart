@@ -1,7 +1,10 @@
 // ignore_for_file: prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
 
+import '../../providers/product_provider.dart';
 import '../../theme.dart';
 
 class HomePage extends StatefulWidget {
@@ -199,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Text(
                           'Minyak',
-                          style: categoryTextStyle.copyWith(
+                          style: greyTextStyle.copyWith(
                             fontSize: 13,
                             fontWeight: medium,
                           ),
@@ -220,7 +223,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Text(
                           'Mie instan',
-                          style: categoryTextStyle.copyWith(
+                          style: greyTextStyle.copyWith(
                             fontSize: 13,
                             fontWeight: medium,
                           ),
@@ -241,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Text(
                           'Gula',
-                          style: categoryTextStyle.copyWith(
+                          style: greyTextStyle.copyWith(
                             fontSize: 13,
                             fontWeight: medium,
                           ),
@@ -262,7 +265,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Text(
                           'Teh',
-                          style: categoryTextStyle.copyWith(
+                          style: greyTextStyle.copyWith(
                             fontSize: 13,
                             fontWeight: medium,
                           ),
@@ -278,10 +281,53 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    Widget productTitle() {
+      return Padding(
+        padding: const EdgeInsets.only(
+          top: 22,
+          left: 20,
+        ),
+        child: Text(
+          'Daftar Semua Produk',
+          style: primaryTextStyle.copyWith(
+            fontWeight: semiBold,
+          ),
+        ),
+      );
+    }
+
+    Widget product() {
+      return Consumer<ProductProvider>(
+        builder: (context, data, child) {
+          return GridView(
+            padding: EdgeInsets.only(
+              top: 10,
+              left: 20,
+              right: 20,
+              bottom: 20,
+            ),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.72,
+              crossAxisSpacing: 20,
+              mainAxisSpacing: 20,
+            ),
+            children: data.products.map(
+                (product) => ProductCard(product: product)
+            ).toList(),
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+          );
+        }
+      );
+    }
+    
     return ListView(
       children: [
-        header(),
+        SafeArea(child: header()),
         category(),
+        productTitle(),
+        product(),
       ],
     );
   }
