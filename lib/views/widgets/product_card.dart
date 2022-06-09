@@ -32,14 +32,14 @@ class ProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8,),
               Center(
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(4),
                   child: product.galleries.isNotEmpty ?
                     Image.network(
                       constants.urlPhoto + product.galleries[0].url.toString(),
@@ -79,6 +79,30 @@ class ProductCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              const Spacer(),
+              InkWell(
+                splashColor: btnColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  //Navigator.pushNamed(context, '/cart');
+                },
+                child: Ink(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: btnColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_circle, color: btnColor),
+                      const SizedBox(width: 8,),
+                      Text('Keranjang', style: yellowTextStyle.copyWith(fontWeight: medium)),
+                    ],
+                  )
+                ),
+              ),
+              const SizedBox(height: 8,),
             ],
           ),
         ),

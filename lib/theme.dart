@@ -28,6 +28,7 @@ TextStyle greyTextStyle = GoogleFonts.poppins(color: outlinedBtnColor);
 
 TextStyle labelTextStyle = GoogleFonts.poppins(color: secondaryColor);
 TextStyle priceTextStyle = GoogleFonts.poppins(color: priceColor);
+TextStyle yellowTextStyle = GoogleFonts.poppins(color: btnColor);
 
 FontWeight light = FontWeight.w300;
 FontWeight regular = FontWeight.w400;
