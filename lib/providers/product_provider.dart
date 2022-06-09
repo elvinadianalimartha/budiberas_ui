@@ -18,6 +18,19 @@ class ProductProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  int _currentIndexImg = 0;
+
+  int get currentIndexImg => _currentIndexImg;
+
+  set currentIndexImg(int value) {
+    _currentIndexImg = value;
+    notifyListeners();
+  }
+
+  void disposeIndexImgValue() {
+    _currentIndexImg = 0;
+  }
+
   Future<void> getProducts() async{
     loading = true;
     try{

@@ -2,13 +2,15 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
 import '../models/product_model.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
-class DetailProductPage extends StatelessWidget {
+class DetailProductPage extends StatefulWidget {
   final ProductModel product;
 
   const DetailProductPage({
@@ -17,14 +19,94 @@ class DetailProductPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<DetailProductPage> createState() => _DetailProductPageState();
+}
+
+class _DetailProductPageState extends State<DetailProductPage> {
+  late ProductProvider productProvider;
+
+  @override
+  void initState() {
+    productProvider = Provider.of<ProductProvider>(context, listen: false);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    productProvider.disposeIndexImgValue();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    print('hai ini detail product page');
+
     var formatter = NumberFormat.decimalPattern('id');
+
+    Widget indicator(int index) {
+      return Consumer<ProductProvider>(
+        builder: (context, data, child) {
+          return Container(
+            width: data.currentIndexImg == index ? 16 : 4,
+            height: 4,
+            margin: const EdgeInsets.symmetric(
+              horizontal: 2,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: data.currentIndexImg == index ? primaryColor : secondaryColor,
+            ),
+          );
+        }
+      );
+    }
+
+    Widget photoInHeader() {
+      int index = -1;
+      return Column(
+        children: [
+          Consumer<ProductProvider>(
+            builder: (context, data, child) {
+              return CarouselSlider(
+                items: widget.product.galleries.map(
+                        (image) => Image.network(
+                      constants.urlPhoto + image.url.toString(),
+                      height: 200,
+                      width: MediaQuery.of(context).size.width/2,
+                      fit: BoxFit.cover,
+                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                        return Icon(Icons.image_not_supported_rounded, color: secondaryTextColor, size: 100,);
+                      },
+                    )
+                ).toList(),
+                options: CarouselOptions(
+                    enableInfiniteScroll: false,
+                    initialPage: 0,
+                    onPageChanged: (a, reason) {
+                      data.currentIndexImg = a;
+                    }
+                ),
+              );
+            }
+          ),
+          const SizedBox(height: 16,),
+          widget.product.galleries.length > 1
+              ? Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: widget.product.galleries.map((e) {
+              index++;
+              return indicator(index);
+            }).toList(),
+          ): const SizedBox(),
+        ],
+      );
+    }
 
     Widget header() {
       return Column(
         children: [
           Container(
-            margin: const EdgeInsets.all(20),
+            margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -33,9 +115,9 @@ class DetailProductPage extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: fourthColor,
+                        color: thirdColor.withOpacity(0.3),
                     ),
-                    child: const Icon(Icons.chevron_left),
+                    child: Icon(Icons.arrow_back, size: 20, color: priceColor,),
                   ),
                   onTap: () {
                     Navigator.pop(context);
@@ -46,9 +128,9 @@ class DetailProductPage extends StatelessWidget {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: fourthColor,
+                      color: thirdColor.withOpacity(0.3),
                     ),
-                    child: Image.asset('assets/icon_cart.png', width: 24, color: secondaryColor,)
+                    child: Image.asset('assets/icon_cart.png', width: 22, color: priceColor,)
                   ),
                   onTap: () {
                     Navigator.pushNamed(context, '/cart');
@@ -57,86 +139,79 @@ class DetailProductPage extends StatelessWidget {
               ],
             ),
           ),
-          CarouselSlider(
-            items: product.galleries.map(
-                  (image) => Image.network(
-                    constants.urlPhoto + image.url.toString(),
-                    //width: MediaQuery.of(context).size.width,
-                    height: 200,
-                    fit: BoxFit.cover,
-                  )
-            ).toList(),
-            options: CarouselOptions(
-              initialPage: 0,
-              onPageChanged: (a, reason) {
-
-              }
+          widget.product.galleries.isNotEmpty
+            ? photoInHeader()
+            : SizedBox(
+                height: 250,
+                child: Icon(Icons.image, color: secondaryTextColor, size: 100,)
             ),
-          )
         ],
       );
     }
 
     Widget content() {
       return Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(top: 16),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(24),
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 16),
+          decoration: const BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+            color: Colors.white
           ),
-          color: Colors.white
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //NOTE: product name
-              Text(
-                product.name,
-                style: primaryTextStyle.copyWith(
-                  fontWeight: semiBold,
-                  fontSize: 16,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4,),
-              Text(
-                product.category.categoryName,
-                style: secondaryTextStyle.copyWith(
-                  fontSize: 15,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4,),
-              Text(
-                'Rp ${formatter.format(product.price)}',
-                style: priceTextStyle.copyWith(
-                  fontWeight: semiBold,
-                  fontSize: 15,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 20,),
-              Text(
-                'Deskripsi',
-                style: primaryTextStyle.copyWith(
-                  fontWeight: semiBold,
-                ),
-              ),
-              const SizedBox(height: 4,),
-              Text(
-                product.description,
-                style: greyTextStyle,
-              )
-            ],
+          constraints: const BoxConstraints(
+            minHeight: 230,
           ),
-        ),
-      );
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                //NOTE: product name
+                Text(
+                  widget.product.name,
+                  style: primaryTextStyle.copyWith(
+                    fontWeight: semiBold,
+                    fontSize: 16,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4,),
+                Text(
+                  widget.product.category.categoryName,
+                  style: secondaryTextStyle.copyWith(
+                    fontSize: 15,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4,),
+                Text(
+                  'Rp ${formatter.format(widget.product.price)}',
+                  style: priceTextStyle.copyWith(
+                    fontWeight: semiBold,
+                    fontSize: 15,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 20,),
+                Text(
+                  'Deskripsi',
+                  style: primaryTextStyle.copyWith(
+                    fontWeight: semiBold,
+                  ),
+                ),
+                const SizedBox(height: 4,),
+                Text(
+                  widget.product.description,
+                  style: greyTextStyle,
+                )
+              ],
+            ),
+          ),
+        );
     }
 
     Widget actionButton() {
@@ -154,8 +229,8 @@ class DetailProductPage extends StatelessWidget {
                     // );
                   },
                   child: Container(
-                    width: 54,
-                    height: 54,
+                    width: 50,
+                    height: 50,
                     decoration: BoxDecoration(
                       border: Border.all(color: btnColor),
                       borderRadius: BorderRadius.circular(12),
