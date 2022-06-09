@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/splash_page.dart';
-import 'package:skripsi_budiberas_9701/views/detail_product_page.dart';
 import 'package:skripsi_budiberas_9701/views/main/cart_page.dart';
 import 'package:skripsi_budiberas_9701/views/main/main_page.dart';
 
@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => PageProvider(),),
         ChangeNotifierProvider(create: (context) => ProductProvider(),),
+        ChangeNotifierProvider(create: (context) => CategoryProvider(),),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

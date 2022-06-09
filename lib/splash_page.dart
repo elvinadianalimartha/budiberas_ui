@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 
@@ -19,8 +20,10 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   getInit() async{
-    //await Provider.of<CategoryProvider>(context)
-    await Provider.of<ProductProvider>(context, listen: false).getProducts();
+    await Future.wait([
+      Provider.of<CategoryProvider>(context, listen: false).getCategories(),
+      Provider.of<ProductProvider>(context, listen: false).getProducts(),
+    ]);
 
     Navigator.pushNamed(context, '/home');
   }
@@ -29,6 +32,9 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
+      body: Center(
+        child: Image.asset('assets/big_logo.png', width: MediaQuery.of(context).size.width/1.5,),
+      ),
     );
   }
 }

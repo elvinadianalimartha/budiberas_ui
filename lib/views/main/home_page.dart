@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
 
+import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme.dart';
 
@@ -160,121 +161,43 @@ class _HomePageState extends State<HomePage> {
           ),
           Container(
             margin: EdgeInsets.only(top: 12, left: 20),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric( //luas daerah button
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        margin: EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: outlinedBtnColor,
-                          ),
-                          color: transparentColor,
-                        ),
-                        child: Text(
-                          'Beras',
-                          style: primaryTextStyle.copyWith(
-                            fontSize: 13,
-                            fontWeight: medium,
-                          ),
-                        ),
-                      ),
-                      Container(
+            child: Consumer<CategoryProvider>(
+              builder: (context, data, child) {
+                return SizedBox(
+                  height: 45,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    physics: ClampingScrollPhysics(),
+                    itemCount: data.categories.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 10,
                         ),
                         margin: EdgeInsets.only(right: 16),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(
                             color: outlinedBtnColor,
                           ),
                           color: transparentColor,
                         ),
-                        child: Text(
-                          'Minyak',
-                          style: greyTextStyle.copyWith(
-                            fontSize: 13,
-                            fontWeight: medium,
+                        child: Center(
+                          child: Text(
+                            data.categories[index].categoryName,
+                            style: greyTextStyle.copyWith(
+                              fontSize: 13,
+                              fontWeight: medium,
+                            ),
                           ),
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        margin: EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: outlinedBtnColor,
-                          ),
-                          color: transparentColor,
-                        ),
-                        child: Text(
-                          'Mie instan',
-                          style: greyTextStyle.copyWith(
-                            fontSize: 13,
-                            fontWeight: medium,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        margin: EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: outlinedBtnColor,
-                          ),
-                          color: transparentColor,
-                        ),
-                        child: Text(
-                          'Gula',
-                          style: greyTextStyle.copyWith(
-                            fontSize: 13,
-                            fontWeight: medium,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        margin: EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: outlinedBtnColor,
-                          ),
-                          color: transparentColor,
-                        ),
-                        child: Text(
-                          'Teh',
-                          style: greyTextStyle.copyWith(
-                            fontSize: 13,
-                            fontWeight: medium,
-                          ),
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                ],
-              ),
+                );
+              }
             ),
           ),
         ],
