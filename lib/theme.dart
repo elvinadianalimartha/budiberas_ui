@@ -26,6 +26,7 @@ TextStyle secondaryTextStyle = GoogleFonts.poppins(color: secondaryTextColor);
 TextStyle whiteTextStyle = GoogleFonts.poppins(color: Colors.white);
 TextStyle greyTextStyle = GoogleFonts.poppins(color: outlinedBtnColor);
 
+TextStyle alertTextStyle = GoogleFonts.poppins(color: alertColor);
 TextStyle labelTextStyle = GoogleFonts.poppins(color: secondaryColor);
 TextStyle priceTextStyle = GoogleFonts.poppins(color: priceColor);
 TextStyle yellowTextStyle = GoogleFonts.poppins(color: btnColor);

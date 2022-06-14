@@ -2,11 +2,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
 
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme.dart';
+import '../widgets/reusable/direct_to_auth_dialog.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -53,6 +55,13 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    Future<void> redirectToAuthDialog() async {
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) => const DirectToAuthDialog()
+      );
+    }
+
     Widget headerContent() {
       return Container(
         margin: EdgeInsets.only(
@@ -66,12 +75,16 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                      'Halo John!',
-                      style: whiteTextStyle.copyWith(
-                          fontSize: 20,
-                          fontWeight: semiBold
-                      )
+                  Consumer<AuthProvider>(
+                    builder: (context, data, child) {
+                      return Text(
+                        data.user != null ? 'Halo ${data.user!.name}!' : 'Halo!',
+                        style: whiteTextStyle.copyWith(
+                            fontSize: 20,
+                            fontWeight: semiBold
+                        )
+                      );
+                    }
                   ),
                   SizedBox(height: 5),
                   Text(
@@ -110,13 +123,24 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            Container(
-              width: 54,
-              height: 54,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(image: AssetImage('assets/profile_image.png')),
-              ),
+            Consumer<AuthProvider>(
+              builder: (context, data, child) {
+                return GestureDetector(
+                  onTap: () {
+                    data.user != null
+                        ? Navigator.pushNamed(context, '/profile')
+                        : redirectToAuthDialog();
+                  },
+                  child: Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(image: AssetImage('assets/profile_image.png')),
+                    ),
+                  ),
+                );
+              }
             )
           ],
         ),

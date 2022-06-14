@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
 
 import '../../models/product_model.dart';
+import '../../providers/auth_provider.dart';
 import '../../theme.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
@@ -19,6 +22,17 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var formatter = NumberFormat.decimalPattern('id');
+
+    handleAddToCart() async {
+
+    }
+
+    Future<void> redirectToAuthDialog() async {
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) => const DirectToAuthDialog()
+      );
+    }
 
     return GestureDetector(
       onTap: () {
@@ -80,27 +94,33 @@ class ProductCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const Spacer(),
-              InkWell(
-                splashColor: btnColor.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-                onTap: () {
-                  //Navigator.pushNamed(context, '/cart');
-                },
-                child: Ink(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: btnColor),
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, child) {
+                  return InkWell(
+                    splashColor: btnColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.add_circle, color: btnColor),
-                      const SizedBox(width: 8,),
-                      Text('Keranjang', style: yellowTextStyle.copyWith(fontWeight: medium)),
-                    ],
-                  )
-                ),
+                    onTap: () {
+                      authProvider.user != null
+                        ? handleAddToCart()
+                        : redirectToAuthDialog(); //NOTE: jika user blm login (user model masih null), maka di-direct ke auth dulu
+                    },
+                    child: Ink(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: btnColor),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle, color: btnColor),
+                            const SizedBox(width: 8,),
+                            Text('Keranjang', style: yellowTextStyle.copyWith(fontWeight: medium)),
+                          ],
+                        )
+                    ),
+                  );
+                }
               ),
               const SizedBox(height: 8,),
             ],

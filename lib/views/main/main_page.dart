@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/views/direct_to_auth_page.dart';
 import 'package:skripsi_budiberas_9701/views/main/transaction_page.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 
+import '../../models/user_model.dart';
+import '../../providers/auth_provider.dart';
 import 'cart_page.dart';
 import 'chat_page.dart';
 import 'home_page.dart';
@@ -19,6 +22,7 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     PageProvider pageProvider = Provider.of<PageProvider>(context);
+    UserModel? user = Provider.of<AuthProvider>(context).user;
 
     Widget customBottomNav() {
       return Container(
@@ -94,11 +98,11 @@ class _MainPageState extends State<MainPage> {
         case 0:
           return HomePage();
         case 1:
-          return ChatPage();
+          return user!=null ? ChatPage() : DirectToAuthPage();
         case 2:
-          return CartPage();
+          return user!=null ? CartPage() : DirectToAuthPage();
         case 3:
-          return TransactionPage();
+          return user!=null ? TransactionPage() : DirectToAuthPage();
         default:
           return HomePage();
       }

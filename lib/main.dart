@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/splash_page.dart';
+import 'package:skripsi_budiberas_9701/views/form/login_form.dart';
 import 'package:skripsi_budiberas_9701/views/main/cart_page.dart';
 import 'package:skripsi_budiberas_9701/views/main/main_page.dart';
+import 'package:skripsi_budiberas_9701/views/profile_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +24,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => PageProvider(),),
         ChangeNotifierProvider(create: (context) => ProductProvider(),),
         ChangeNotifierProvider(create: (context) => CategoryProvider(),),
+        ChangeNotifierProvider(create: (context) => AuthProvider(),),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -28,6 +32,8 @@ class MyApp extends StatelessWidget {
           '/': (context) => const SplashPage(),
           '/home': (context) => MainPage(),
           '/cart': (context) => CartPage(),
+          '/sign-in': (context) => LoginForm(),
+          '/profile': (context) => ProfilePage(),
         },
       ),
     );

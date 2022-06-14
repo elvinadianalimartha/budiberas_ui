@@ -3,8 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
 import '../models/product_model.dart';
@@ -214,6 +216,13 @@ class _DetailProductPageState extends State<DetailProductPage> {
         );
     }
 
+    Future<void> redirectToAuthDialog() async {
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) => const DirectToAuthDialog()
+      );
+    }
+
     Widget actionButton() {
       return Container(
         width: double.infinity,
@@ -222,26 +231,41 @@ class _DetailProductPageState extends State<DetailProductPage> {
           padding: const EdgeInsets.all(20.0),
           child: Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (context) => DetailChatPage(widget.product))
-                    // );
-                  },
-                  child: Container(
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: btnColor),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.chat, color: btnColor),
-                  ),
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    return GestureDetector(
+                      onTap: () {
+                        authProvider.user != null
+                            ? print('chat') // Navigator.push(context,
+                                            //     MaterialPageRoute(builder: (context) => DetailChatPage(widget.product))
+                                            // );
+                            : redirectToAuthDialog();
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: btnColor),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(Icons.chat, color: btnColor),
+                      ),
+                    );
+                  }
                 ),
                 const SizedBox(width: 16,),
-                const Expanded(
-                  child: DoneButton(
-                    text: 'Masukkan ke Keranjang',
+                Expanded(
+                  child: Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return DoneButton(
+                        onClick: () {
+                          authProvider.user != null
+                              ? print('keranjang')
+                              : redirectToAuthDialog();
+                        },
+                        text: 'Masukkan ke Keranjang',
+                      );
+                    }
                   ),
                 )
               ],
