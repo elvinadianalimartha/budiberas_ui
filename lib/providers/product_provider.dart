@@ -31,6 +31,10 @@ class ProductProvider with ChangeNotifier{
     _currentIndexImg = 0;
   }
 
+  void disposeSearch() {
+    _searchQuery = '';
+  }
+
   Future<void> getProducts() async{
     loading = true;
     try{
