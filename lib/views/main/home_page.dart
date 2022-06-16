@@ -1,4 +1,3 @@
-// ignore_for_file: prefer_const_constructors
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,39 +18,74 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController searchController = TextEditingController(text: '');
+  bool _statusFilled = false;
+  late CategoryProvider categoryProvider;
+  late ProductProvider productProvider;
+
+  @override
+  void initState() {
+    categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
+    productProvider = Provider.of<ProductProvider>(context, listen: false);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    searchController.clear();
+    productProvider.disposeSearch();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    void clearSearch() {
+      searchController.clear();
+      _statusFilled = false;
+      productProvider.searchProduct('');
+    }
+
     Widget search() {
-      return Container(
-        height: 50,
-        width: MediaQuery.of(context).size.width - 40,
-        padding: EdgeInsets.symmetric(
-            horizontal: 16
-        ),
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: <BoxShadow> [
-              BoxShadow(color: Color(0xff2895BD).withOpacity(0.3), blurRadius: 15.0),
-            ]
-        ),
-        child: Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  style: primaryTextStyle,
-                  controller: searchController,
-                  decoration: InputDecoration.collapsed(
-                      hintText: 'Cari nama produk',
-                      hintStyle: secondaryTextStyle
-                  ),
+      return Consumer<ProductProvider>(
+        builder: (context, productProvider, child) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: TextFormField(
+              style: primaryTextStyle,
+              controller: searchController,
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                isCollapsed: true,
+                isDense: true,
+                contentPadding: const EdgeInsets.all(12),
+                fillColor: Colors.white,
+                filled: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                hintText: 'Cari nama produk',
+                hintStyle: secondaryTextStyle,
+                prefixIcon: Icon(Icons.search, color: secondaryTextColor, size: 20,),
+                suffixIcon: _statusFilled
+                    ? InkWell(
+                        onTap: () {
+                          clearSearch();
+                        },
+                        child: Icon(Icons.cancel, color: secondaryTextColor, size: 20,)
+                      )
+                    : null,
               ),
-              SizedBox(width: 16,),
-              Icon(Icons.search, color: secondaryTextColor,),
-            ]
-        ),
+              onChanged: (value) { //onChanged atau onSubmitted enaknya?
+                productProvider.searchProduct(value);
+                if(value.isNotEmpty) {
+                  _statusFilled = true;
+                } else {
+                  _statusFilled = false;
+                }
+              },
+            ),
+          );
+        }
       );
     }
 
@@ -62,111 +96,114 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    Widget profile() {
+      return Consumer<AuthProvider>(
+          builder: (context, data, child) {
+            return GestureDetector(
+              onTap: () {
+                data.user != null
+                    ? Navigator.pushNamed(context, '/profile')
+                    : redirectToAuthDialog();
+              },
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(image: AssetImage('assets/profile_image.png')),
+                ),
+              ),
+            );
+          }
+      );
+    }
+
     Widget headerContent() {
       return Container(
-        margin: EdgeInsets.only(
-          top: 20.0,
+        margin: const EdgeInsets.only(
+          top: 40.0,
           left: 20.0,
           right: 20.0,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Consumer<AuthProvider>(
-                    builder: (context, data, child) {
-                      return Text(
-                        data.user != null ? 'Halo ${data.user!.name}!' : 'Halo!',
-                        style: whiteTextStyle.copyWith(
-                            fontSize: 20,
-                            fontWeight: semiBold
-                        )
-                      );
-                    }
-                  ),
-                  SizedBox(height: 5),
-                  Text(
-                    'Selamat datang di Budi Beras!',
-                    style: whiteTextStyle.copyWith(
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 5),
-                  Container(
-                    width: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14.0),
-                      color: Colors.white.withOpacity(0.25),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        vertical: 5.0,
-                        horizontal: 10.0,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.access_time_filled, color: secondaryColor,),
-                          SizedBox(width: 10,),
-                          Text(
-                            'Buka: 07.00 - 17.00',
-                            style: whiteTextStyle.copyWith(
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                ],
-              ),
-            ),
             Consumer<AuthProvider>(
               builder: (context, data, child) {
-                return GestureDetector(
-                  onTap: () {
-                    data.user != null
-                        ? Navigator.pushNamed(context, '/profile')
-                        : redirectToAuthDialog();
-                  },
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(image: AssetImage('assets/profile_image.png')),
-                    ),
-                  ),
+                return Text(
+                  data.user != null ? 'Halo ${data.user!.name}!' : 'Halo!',
+                  style: whiteTextStyle.copyWith(
+                      fontSize: 20,
+                      fontWeight: semiBold
+                  )
                 );
               }
-            )
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Selamat datang di Budi Beras!',
+                        style: whiteTextStyle.copyWith(
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14.0),
+                          color: Colors.white.withOpacity(0.25),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 5.0,
+                            horizontal: 10.0,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.access_time_filled, color: secondaryColor,),
+                              const SizedBox(width: 10,),
+                              Text(
+                                'Buka: 07.00 - 17.00',
+                                style: whiteTextStyle.copyWith(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                profile(),
+              ],
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       );
     }
 
-    Widget header() {
-      return Stack(
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.3,
-          ),
-          Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.25,
-            color: primaryColor,
-          ),
-          headerContent(),
-          Positioned(
-            top: 140,
-            left: 20,
-            child: search()
-          ),
-        ],
-      );
+    Future<void> refreshData() async{
+      categoryProvider.categories = [];
+      productProvider.products = [];
+
+      //search field dikosongkan spy data utuh
+      searchController.clear();
+      productProvider.disposeSearch();
+
+      await Future.wait([
+        Provider.of<CategoryProvider>(context, listen: false).getCategories(),
+        Provider.of<ProductProvider>(context, listen: false).getProducts(),
+      ]);
     }
 
     Widget category() {
@@ -174,7 +211,7 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: EdgeInsets.only(top: 12, left: 20),
+            margin: const EdgeInsets.only(left: 20),
             child: Text(
               'Belanja berdasarkan Kategori',
               style: primaryTextStyle.copyWith(
@@ -184,7 +221,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           Container(
-            margin: EdgeInsets.only(top: 12, left: 20),
+            margin: const EdgeInsets.only(top: 12, left: 20),
             child: Consumer<CategoryProvider>(
               builder: (context, data, child) {
                 return SizedBox(
@@ -192,15 +229,15 @@ class _HomePageState extends State<HomePage> {
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
-                    physics: ClampingScrollPhysics(),
+                    physics: const ClampingScrollPhysics(),
                     itemCount: data.categories.length,
                     itemBuilder: (BuildContext context, int index) {
                       return Container(
-                        padding: EdgeInsets.symmetric(
+                        padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 10,
                         ),
-                        margin: EdgeInsets.only(right: 16),
+                        margin: const EdgeInsets.only(right: 16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
@@ -247,13 +284,13 @@ class _HomePageState extends State<HomePage> {
       return Consumer<ProductProvider>(
         builder: (context, data, child) {
           return GridView(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               top: 10,
               left: 20,
               right: 20,
               bottom: 20,
             ),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.58,
               crossAxisSpacing: 20,
@@ -263,19 +300,86 @@ class _HomePageState extends State<HomePage> {
                 (product) => ProductCard(product: product)
             ).toList(),
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
           );
         }
       );
     }
+
+    Widget productNotFound() {
+      return Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 20,),
+            Image.asset('assets/empty-icon.png', width: MediaQuery.of(context).size.width - (15 * defaultMargin),),
+            const SizedBox(height: 10,),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: Text(
+                'Mohon maaf, produk yang Anda cari tidak ditemukan',
+                style: primaryTextStyle.copyWith(
+                  fontWeight: medium,
+                  fontSize: 15
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 20,),
+          ],
+        ),
+      );
+    }
     
-    return ListView(
-      children: [
-        SafeArea(child: header()),
-        category(),
-        productTitle(),
-        product(),
-      ],
+    return RefreshIndicator(
+      onRefresh: refreshData,
+      child: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              expandedHeight: 210,
+              collapsedHeight: 80,
+              backgroundColor: primaryColor,
+              pinned: true,
+              snap: false,
+              floating: false,
+              flexibleSpace: FlexibleSpaceBar(
+                expandedTitleScale: 1,
+                centerTitle: true,
+                title: search(),
+                background: headerContent(),
+              ),
+            ),
+            Consumer2<CategoryProvider, ProductProvider>(
+              builder: (context, categoryProvider, productProvider, child) {
+                return SliverList(
+                  delegate: SliverChildListDelegate([
+                    categoryProvider.loading || productProvider.loading ?
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 100.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ) :
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20,),
+                          category(),
+                          productTitle(),
+                          productProvider.products.isEmpty ? productNotFound() : product(),
+                        ],
+                      )
+                    )
+                  ])
+                );
+              }
+            )
+          ],
+        ),
+      ),
     );
   }
 }
