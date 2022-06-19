@@ -30,6 +30,7 @@ TextStyle alertTextStyle = GoogleFonts.poppins(color: alertColor);
 TextStyle labelTextStyle = GoogleFonts.poppins(color: secondaryColor);
 TextStyle priceTextStyle = GoogleFonts.poppins(color: priceColor);
 TextStyle yellowTextStyle = GoogleFonts.poppins(color: btnColor);
+TextStyle orderNotesTextStyle = GoogleFonts.poppins(color: primaryColor);
 
 FontWeight light = FontWeight.w300;
 FontWeight regular = FontWeight.w400;
