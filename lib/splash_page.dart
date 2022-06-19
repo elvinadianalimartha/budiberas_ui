@@ -6,6 +6,7 @@ import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
+import 'package:skripsi_budiberas_9701/views/main/main_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({Key? key}) : super(key: key);
@@ -36,7 +37,7 @@ class _SplashPageState extends State<SplashPage> {
     if(email != '') {
       await authProvider.login(email: email, password: password);
     }
-    Navigator.pushNamed(context, '/home');
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainPage()));
   }
 
   @override
