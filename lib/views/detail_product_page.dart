@@ -8,9 +8,13 @@ import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/succeed_dialog.dart';
 
 import '../models/product_model.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
+
+import '../providers/cart_provider.dart';
+import '../providers/page_provider.dart';
 
 class DetailProductPage extends StatefulWidget {
   final ProductModel product;
@@ -135,7 +139,8 @@ class _DetailProductPageState extends State<DetailProductPage> {
                     child: Image.asset('assets/icon_cart.png', width: 22, color: priceColor,)
                   ),
                   onTap: () {
-                    Navigator.pushNamed(context, '/cart');
+                    context.read<PageProvider>().currentIndex = 2;
+                    Navigator.of(context).pop();
                   },
                 )
               ],
@@ -216,6 +221,35 @@ class _DetailProductPageState extends State<DetailProductPage> {
         );
     }
 
+    Future<void> addToCartSucceed() async{
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            Future.delayed(const Duration(seconds: 1), () {
+              Navigator.pop(context);
+            });
+            return SucceedDialogWidget(text: '${widget.product.name} berhasil ditambahkan ke keranjang',);
+          }
+      );
+    }
+
+    handleAddToCart({
+      required String token,
+      required int productId,
+    }) async {
+      if(await CartProvider().addToCart(token: token, productId: productId)) {
+        addToCartSucceed();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Produk gagal ditambahkan'),
+            backgroundColor: alertColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+
     Future<void> redirectToAuthDialog() async {
       return showDialog(
           context: context,
@@ -260,7 +294,7 @@ class _DetailProductPageState extends State<DetailProductPage> {
                       return DoneButton(
                         onClick: () {
                           authProvider.user != null
-                              ? print('keranjang')
+                              ? handleAddToCart(token: authProvider.user!.token!, productId: widget.product.id)
                               : redirectToAuthDialog();
                         },
                         text: 'Masukkan ke Keranjang',
@@ -270,7 +304,7 @@ class _DetailProductPageState extends State<DetailProductPage> {
                 )
               ],
             ),
-        ),
+          ),
         );
     }
 

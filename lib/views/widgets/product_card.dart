@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/succeed_dialog.dart';
 
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
@@ -23,8 +25,33 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var formatter = NumberFormat.decimalPattern('id');
 
-    handleAddToCart() async {
+    Future<void> addToCartSucceed() async{
+      return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          Future.delayed(const Duration(seconds: 1), () {
+            Navigator.pop(context);
+          });
+          return SucceedDialogWidget(text: '${product.name} berhasil ditambahkan ke keranjang',);
+        }
+      );
+    }
 
+    handleAddToCart({
+      required String token,
+      required int productId,
+    }) async {
+      if(await CartProvider().addToCart(token: token, productId: productId)) {
+        addToCartSucceed();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Produk gagal ditambahkan'),
+            backgroundColor: alertColor,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
 
     Future<void> redirectToAuthDialog() async {
@@ -101,7 +128,7 @@ class ProductCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     onTap: () {
                       authProvider.user != null
-                        ? handleAddToCart()
+                        ? handleAddToCart(productId: product.id, token: authProvider.user!.token!)
                         : redirectToAuthDialog(); //NOTE: jika user blm login (user model masih null), maka di-direct ke auth dulu
                     },
                     child: Ink(
