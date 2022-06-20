@@ -29,13 +29,12 @@ class _SplashPageState extends State<SplashPage> {
     ]);
     AuthProvider authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    //NOTE: get data login yg tersimpan di shared preference (diset saat login)
+    //NOTE: get token yg tersimpan di shared preference (diset saat login)
     SharedPreferences loginData = await SharedPreferences.getInstance();
-    var email = loginData.getString('email');
-    var password = loginData.getString('password');
+    var token = loginData.getString('token');
 
-    if(email != '') {
-      await authProvider.login(email: email, password: password);
+    if(token != null) {
+      await authProvider.fetchDataUser(token);
     }
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MainPage()));
   }

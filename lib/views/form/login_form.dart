@@ -7,6 +7,7 @@ import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/text_field.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../providers/page_provider.dart';
 import '../widgets/reusable/loading_button.dart';
 
 class LoginForm extends StatefulWidget {
@@ -35,9 +36,10 @@ class _LoginFormState extends State<LoginForm> {
 
       if(await authProvider.login(email: emailController.text, password: passwordController.text)) {
         loginData = await SharedPreferences.getInstance();
-        loginData.setString('email', emailController.text);
-        loginData.setString('password', passwordController.text);
-        Navigator.pushNamed(context, '/home');
+        loginData.setString('token', authProvider.user!.token!);
+        //await authProvider.fetchDataUser(authProvider.user!.token!);
+        context.read<PageProvider>().currentIndex = 0;
+        Navigator.of(context).pop();
       }else {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -134,7 +136,7 @@ class _LoginFormState extends State<LoginForm> {
                 });
               },
               child: Icon(
-                  _notVisible ? Icons.visibility : Icons.visibility_off,
+                  _notVisible ? Icons.visibility_off : Icons.visibility,
                   size: 20
               )
             ),

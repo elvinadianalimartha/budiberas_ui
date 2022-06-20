@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/are_you_sure_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
@@ -14,7 +15,6 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // UserModel? user = Provider.of<AuthProvider>(context).user;
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
     UserModel? user = authProvider.user;
 
@@ -78,9 +78,7 @@ class ProfilePage extends StatelessWidget {
       if(await authProvider.logout(user!.token!)) {
         authProvider.user = null;
         loginData = await SharedPreferences.getInstance();
-        loginData.remove('email');
-        loginData.remove('password');
-        //kayaknya perlu pop jg di sini
+        loginData.remove('token'); //token diset jd null
         Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       } else {
         Navigator.pop(context);
@@ -99,54 +97,26 @@ class ProfilePage extends StatelessWidget {
     Future<void> showDialogAreYouSure() async{
       return showDialog(
         context: context,
-        builder: (BuildContext context) => AlertDialog(
-          insetPadding: const EdgeInsets.all(40),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xffffdeeb),
-                      shape: BoxShape.circle,
-                    ),
-                    padding: const EdgeInsets.all(12),
-                    child: Icon(Icons.question_mark, size: 30, color: alertColor,)
-                ),
-                const SizedBox(height: 12,),
-                Text(
-                  'Apakah Anda yakin ingin keluar dari aplikasi?',
-                  style: primaryTextStyle, textAlign: TextAlign.center,
-                ),
-                SizedBox(height: defaultMargin,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CancelButton(
-                      onClick: () {
-                        Navigator.pop(context);
-                      },
-                      text: 'Tidak',
-                      fontSize: 14,
-                    ),
-                    const SizedBox(width: 36,),
-                    DoneButton(
-                      onClick: () {
-                        handleLogout();
-                      },
-                      text: 'Ya, keluar',
-                      fontSize: 14,
-                    )
-                  ]
-                )
-              ],
+        builder: (BuildContext context) => AlertDialogWidget(
+          text: 'Apakah Anda yakin ingin keluar dari aplikasi?',
+          childrenList: [
+            CancelButton(
+              onClick: () {
+                Navigator.pop(context);
+              },
+              text: 'Tidak',
+              fontSize: 14,
             ),
-          ),
-        ),
+            const SizedBox(width: 16,),
+            DoneButton(
+              onClick: () {
+                handleLogout();
+              },
+              text: 'Ya, keluar',
+              fontSize: 14,
+            ),
+          ],
+        )
       );
     }
 

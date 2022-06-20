@@ -61,4 +61,15 @@ class AuthProvider with ChangeNotifier{
       return false;
     }
   }
+
+  Future<void> fetchDataUser(String token) async {
+    try {
+      UserModel user = await AuthService().fetchDataUser(
+        token: token,
+      );
+      _user = user; //berhasil fetch data by token yg disimpan di shared pref
+    }catch(e) {
+      print(e);
+    }
+  }
 }

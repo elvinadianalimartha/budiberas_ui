@@ -92,4 +92,32 @@ class AuthService{
       throw Exception('Gagal logout!');
     }
   }
+
+  Future<UserModel> fetchDataUser({
+    required String token,
+  }) async {
+
+    var url = '$baseUrl/fetchData';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var response = await http.get(
+        Uri.parse(url),
+        headers: headers,
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200){
+      var data = jsonDecode(response.body)['data'];
+      UserModel user = UserModel.fromJson(data);
+      user.token = token;
+
+      return user;
+    } else {
+      throw Exception('Gagal ambil data user!');
+    }
+  }
 }
