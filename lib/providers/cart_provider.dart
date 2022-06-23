@@ -15,6 +15,24 @@ class CartProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  List<CartModel> _cartSelected = [];
+
+  List<CartModel> get cartSelected => _cartSelected;
+
+  set cartSelected(List<CartModel> value) {
+    _cartSelected = value;
+    notifyListeners();
+  }
+
+  bool _checkAll = false;
+
+  bool get checkAll => _checkAll;
+
+  set checkAll(bool value) {
+    _checkAll = value;
+    notifyListeners();
+  }
+
   Future<void> getCartsByUser(String token) async{
     loadingGetCart = true;
     try {
@@ -27,12 +45,44 @@ class CartProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  totalPrice() {
+  setCheckAllValue() {
+    _checkAll = _carts.every((item) => item.isSelected);
+    notifyListeners();
+  }
+
+  initSelectedCartData() {
+    _cartSelected = _carts.where((cart) => cart.isSelected == true).toList();
+
+    //init check all value
+    setCheckAllValue();
+
+    notifyListeners();
+  }
+
+  countTotalPrice() {
     double total = 0;
-    for(var item in _carts) {
+    for(var item in _cartSelected) {
       total += (item.quantity * item.product.price);
     }
     return total;
+  }
+
+  //add to _cartSelected (when checkbox is true)
+  selectCart(CartModel cartModel) {
+    _cartSelected.add(cartModel);
+    notifyListeners();
+  }
+
+  removeFromSelectedCart(int idCart) {
+    _cartSelected.removeWhere(
+            (cart) => cart.id == idCart
+    );
+    notifyListeners();
+  }
+
+  productExistInSelectedCart(int idCart) {
+    bool existVal = _cartSelected.any((cart) => cart.id == idCart);
+    return existVal;
   }
 
   Future<bool> addToCart({
@@ -51,18 +101,59 @@ class CartProvider with ChangeNotifier{
     }
   }
 
+  Future<bool> updateValSelectedCart({
+    required int id,
+    required String token,
+    required int isSelected,
+  }) async {
+    try {
+      if(await CartService().updateValSelectedCart(id: id, token: token, isSelected: isSelected)){
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<bool> updateValSelectedCartAll({
+    required String token,
+    required int isSelected,
+  }) async {
+    try {
+      if(await CartService().updateValSelectedCartAll(token: token, isSelected: isSelected)){
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
   //update quantity on cart (include increment, decrement, edit manual)
   incrementQty(int id) {
-    _carts.where((element) => element.id == id).forEach((cart) {
-      cart.quantity++;
-    });
+    int index = _carts.indexWhere((cart) => cart.id == id);
+    _carts[index].quantity++;
+
+    if(productExistInSelectedCart(id)) {
+      int idSelected = _cartSelected.indexWhere((cart) => cart.id == id);
+      _cartSelected[idSelected].quantity = _carts[index].quantity;
+    }
     notifyListeners();
   }
 
   decrementQty(int id) {
-    _carts.where((element) => element.id == id).forEach((cart) {
-      cart.quantity--;
-    });
+    int index = _carts.indexWhere((cart) => cart.id == id);
+    _carts[index].quantity--;
+
+    if(productExistInSelectedCart(id)) {
+      int idSelected = _cartSelected.indexWhere((cart) => cart.id == id);
+      _cartSelected[idSelected].quantity = _carts[index].quantity;
+    }
     notifyListeners();
   }
 
@@ -83,6 +174,7 @@ class CartProvider with ChangeNotifier{
     }
   }
 
+  //order notes
   clickShowTextForm(int id) {
     _carts.where((element) => element.id == id).forEach((cart) {
       cart.noteIsNull = false;
@@ -118,9 +210,15 @@ class CartProvider with ChangeNotifier{
     }
   }
 
+  //delete cart
   removeCart(int id) {
     if(_carts.isNotEmpty) {
       _carts.removeWhere((element) => element.id == id);
+      notifyListeners();
+    }
+
+    if(_cartSelected.isNotEmpty) {
+      _cartSelected.removeWhere((element) => element.id == id);
       notifyListeners();
     }
   }

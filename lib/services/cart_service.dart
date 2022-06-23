@@ -144,4 +144,61 @@ class CartService{
       throw Exception('Data keranjang gagal dihapus');
     }
   }
+
+  Future<bool> updateValSelectedCart({
+    required int id,
+    required String token,
+    required int isSelected,
+  }) async {
+    var url = '$baseUrl/cartIsSelected/$id';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+    var body = jsonEncode({
+      'is_selected': isSelected,
+    });
+
+    var response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Keranjang yang terpilih gagal diperbarui');
+    }
+  }
+
+  Future<bool> updateValSelectedCartAll({
+    required String token,
+    required int isSelected,
+  }) async {
+    var url = '$baseUrl/allCartIsSelected';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+    var body = jsonEncode({
+      'is_selected': isSelected,
+    });
+
+    var response = await http.put(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Semua keranjang yang terpilih gagal diperbarui');
+    }
+  }
 }

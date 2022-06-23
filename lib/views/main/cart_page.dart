@@ -7,6 +7,7 @@ import 'package:skripsi_budiberas_9701/views/widgets/cart_card.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
+import '../../models/cart_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/page_provider.dart';
@@ -17,6 +18,8 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  UserModel? userData;
+
   @override
   void initState() {
     getInit();
@@ -24,14 +27,16 @@ class _CartPageState extends State<CartPage> {
   }
 
   getInit() async {
-    UserModel? user = Provider.of<AuthProvider>(context, listen: false).user;
-    await Provider.of<CartProvider>(context, listen: false).getCartsByUser(user!.token!);
+    userData = Provider.of<AuthProvider>(context, listen: false).user;
+    await Provider.of<CartProvider>(context, listen: false).getCartsByUser(userData!.token!);
+    await Provider.of<CartProvider>(context, listen: false).initSelectedCartData();
   }
 
   @override
   Widget build(BuildContext context) {
     print('get data keranjang');
     PageProvider pageProvider = Provider.of<PageProvider>(context);
+    AuthProvider authProvider = Provider.of<AuthProvider>(context);
 
     var formatter = NumberFormat.decimalPattern('id');
 
@@ -94,13 +99,90 @@ class _CartPageState extends State<CartPage> {
       );
     }
 
+    updateAllCheckedVal(bool val, CartProvider cartProvider) async {
+      int isSelectedInt = val? 1 : 0;
+      if(await cartProvider.updateValSelectedCartAll(
+          token: authProvider.user!.token!,
+          isSelected: isSelectedInt)
+      ) {
+        return print('sukses update all is_selected');
+      } else {
+        return print('gagal update all is_selected');
+      }
+    }
+
+    void toggleGroupCheckbox(bool? value, CartProvider cartProvider) {
+      if(value == null) {
+        return;
+      }
+      //update all
+      updateAllCheckedVal(value, cartProvider);
+
+      cartProvider.checkAll = value;
+      List<CartModel> carts = cartProvider.carts;
+
+      for (var cart in carts) {
+        cart.isSelected = value; //set nilai semua isi cart jadi = value
+
+        if(value == true) {
+          if(!cartProvider.productExistInSelectedCart(cart.id)) {
+            cartProvider.selectCart(cart);
+          }
+        } else {
+          cartProvider.removeFromSelectedCart(cart.id);
+        }
+      }
+    }
+
+    Widget buildGroupCheckbox(CartProvider cartProvider) {
+      return CheckboxListTile(
+        controlAffinity: ListTileControlAffinity.leading,
+        activeColor: primaryColor,
+        title: Text('Pilih Semua', style: primaryTextStyle.copyWith(fontWeight: medium),),
+        value: cartProvider.checkAll,
+        onChanged: (value) {
+          setState(() {
+            toggleGroupCheckbox(value, cartProvider);
+          });
+        }
+      );
+    }
+
     Widget content(CartProvider cartProvider) {
-      return ListView(
-        padding: const EdgeInsets.only(top: 10),
-        children: cartProvider.carts
-            .map(
-                (cart) => CartCard(cart: cart)
-        ).toList(),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildGroupCheckbox(cartProvider),
+          const Divider(thickness: 3,),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.only(top: 10),
+              itemCount: cartProvider.carts.length,
+              itemBuilder: (context, index) {
+                return CartCard(cart: cartProvider.carts[index]);
+              }
+            ),
+          ),
+        ],
+      );
+    }
+
+    Future<void> dialogListSelectedCart(CartProvider cartProvider) async{
+      return showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          content: SizedBox(
+            height: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: cartProvider.cartSelected.map((e) =>
+                    Text('${e.product.name} | ${e.quantity} buah')
+                ).toList()
+              ),
+            ),
+          ),
+        )
       );
     }
 
@@ -131,7 +213,7 @@ class _CartPageState extends State<CartPage> {
                   ),
                   const SizedBox(height: 8,),
                   Text(
-                    'Rp ${formatter.format(cartProvider.totalPrice())}',
+                    'Rp ${formatter.format(cartProvider.countTotalPrice())}',
                     style: priceTextStyle.copyWith(
                       fontSize: 18,
                       fontWeight: semiBold,
@@ -144,7 +226,7 @@ class _CartPageState extends State<CartPage> {
                   child: BtnWithIcon(
                     text: 'Pesan Sekarang',
                     onClick: () {
-
+                      dialogListSelectedCart(cartProvider);
                     },
                   )
               )

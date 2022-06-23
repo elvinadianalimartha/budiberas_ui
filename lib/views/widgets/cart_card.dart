@@ -27,6 +27,11 @@ class _CartCardState extends State<CartCard> {
   bool _isDisabled = false;
 
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     CartProvider cartProvider = Provider.of<CartProvider>(context);
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
@@ -200,18 +205,18 @@ class _CartCardState extends State<CartCard> {
             borderSide: BorderSide(color: secondaryTextColor, width: 1),
           ),
           suffixIcon: InkWell(
-            onTap: () {
-              cartProvider.clickToRemoveForm(widget.cart.id);
-              textOrderNoteCtrl.clear();
-              handleUpdateNote();
-            },
-            child: const Icon(Icons.close, size: 20,)
+              onTap: () {
+                cartProvider.clickToRemoveForm(widget.cart.id);
+                textOrderNoteCtrl.clear();
+                handleUpdateNote();
+              },
+              child: const Icon(Icons.close, size: 20,)
           ),
           labelText: 'Tulis catatan',
         ),
         onEditingComplete: () {
-            handleUpdateNote();
-            FocusScope.of(context).unfocus();
+          handleUpdateNote();
+          FocusScope.of(context).unfocus();
         },
       );
     }
@@ -230,76 +235,125 @@ class _CartCardState extends State<CartCard> {
       );
     }
 
+    Widget productInCart() {
+      return Row(
+        children: [
+          ClipRRect(
+              borderRadius: BorderRadius.circular(5),
+              child: widget.cart.product.galleries.isNotEmpty
+                  ? Image.network(
+                constants.urlPhoto + widget.cart.product.galleries[0].url.toString(),
+                width: 70,
+                height: 70,
+                fit: BoxFit.cover,
+                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                  return Container(color: secondaryTextColor.withOpacity(0.2), child: Icon(Icons.image_not_supported_rounded, color: secondaryTextColor, size: 70,));
+                },
+              )
+                  : Container(
+                  color: secondaryTextColor.withOpacity(0.2),
+                  child: Icon(Icons.image, color: secondaryTextColor, size: 70,)
+              )
+          ),
+          const SizedBox(width: 16,),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.cart.product.name,
+                  style: primaryTextStyle.copyWith(
+                    fontWeight: semiBold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4,),
+                Text(
+                  'Rp ${formatter.format(widget.cart.product.price)}',
+                  style: priceTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    //simpan value checkbox to server
+    updateCheckedVal(bool val) async {
+      int isSelectedInt = val? 1 : 0;
+      if(await cartProvider.updateValSelectedCart(
+          id: widget.cart.id,
+          token: authProvider.user!.token!,
+          isSelected: isSelectedInt)
+      ) {
+        return print('sukses update is_selected');
+      } else {
+        return print('gagal update is_selected');
+      }
+    }
+
+    Widget checkBox() {
+      return CheckboxListTile(
+        activeColor: primaryColor,
+        onChanged: (bool? value) {
+          updateCheckedVal(value!);
+
+          widget.cart.isSelected = value;
+          cartProvider.setCheckAllValue();
+
+          if(widget.cart.isSelected == true) {
+            cartProvider.selectCart(widget.cart);
+          } else {
+            cartProvider.removeFromSelectedCart(widget.cart.id);
+          }
+        },
+        value: widget.cart.isSelected,
+        controlAffinity: ListTileControlAffinity.leading,
+        title: productInCart(),
+      );
+    }
+
+    Widget cartContent() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          checkBox(),
+          const SizedBox(height: 20,),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 50),
+                  child: widget.cart.noteIsNull == true
+                      ? clickToWrite() : showTextFormForOrderNotes(),
+                ),
+                const SizedBox(height: 20,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    deleteBtn(),
+                    const SizedBox(width: 40,),
+                    editQty(),
+                  ],
+                ),
+              ],
+            ),
+          )
+        ],
+      );
+    }
+
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 12,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(5),
-                    child: widget.cart.product.galleries.isNotEmpty
-                      ? Image.network(
-                        constants.urlPhoto + widget.cart.product.galleries[0].url.toString(),
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                          return Container(color: secondaryTextColor.withOpacity(0.2), child: Icon(Icons.image_not_supported_rounded, color: secondaryTextColor, size: 70,));
-                        },
-                      )
-                      : Container(
-                          color: secondaryTextColor.withOpacity(0.2),
-                          child: Icon(Icons.image, color: secondaryTextColor, size: 70,)
-                        )
-                  ),
-                  const SizedBox(width: 16,),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.cart.product.name,
-                          style: primaryTextStyle.copyWith(
-                            fontWeight: semiBold,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4,),
-                        Text(
-                          'Rp ${formatter.format(widget.cart.product.price)}',
-                          style: priceTextStyle,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20,),
-              widget.cart.noteIsNull == true
-                  ? clickToWrite() : showTextFormForOrderNotes(),
-              const SizedBox(height: 20,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  deleteBtn(),
-                  const SizedBox(width: 40,),
-                  editQty(),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8,),
+        const SizedBox(height: 12,),
+        cartContent(),
+        const SizedBox(height: 12,),
         const Divider(
           thickness: 2,
         )

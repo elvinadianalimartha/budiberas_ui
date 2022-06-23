@@ -6,12 +6,14 @@ class CartModel{
   late int quantity;
   String? orderNotes;
   late bool noteIsNull;
+  late bool isSelected;
 
   CartModel({
     required this.id,
     required this.product,
     required this.quantity,
     required this.orderNotes,
+    required this.isSelected,
   });
 
   CartModel.fromJson(Map<String, dynamic> json){
@@ -24,5 +26,6 @@ class CartModel{
     } else {
       noteIsNull = false;
     }
+    isSelected = json['is_selected'] == 1 ? true : false;
   }
 }
