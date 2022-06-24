@@ -29,7 +29,7 @@ class _CartPageState extends State<CartPage> {
   getInit() async {
     userData = Provider.of<AuthProvider>(context, listen: false).user;
     await Provider.of<CartProvider>(context, listen: false).getCartsByUser(userData!.token!);
-    await Provider.of<CartProvider>(context, listen: false).initSelectedCartData();
+    Provider.of<CartProvider>(context, listen: false).initSelectedCartData();
   }
 
   @override
@@ -226,7 +226,8 @@ class _CartPageState extends State<CartPage> {
                   child: BtnWithIcon(
                     text: 'Pesan Sekarang',
                     onClick: () {
-                      dialogListSelectedCart(cartProvider);
+                      //dialogListSelectedCart(cartProvider);
+                      Navigator.pushNamed(context, '/order-confirmation');
                     },
                   )
               )

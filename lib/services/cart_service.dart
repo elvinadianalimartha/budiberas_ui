@@ -201,4 +201,33 @@ class CartService{
       throw Exception('Semua keranjang yang terpilih gagal diperbarui');
     }
   }
+
+  //NOTE: for order confirmation page
+  Future<List<CartModel>> getSelectedCart({required String token}) async{
+    var url = '$baseUrl/selectedCart';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var response = await http.get(
+        Uri.parse(url),
+        headers: headers
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      List data = jsonDecode(response.body)['data'];
+      List<CartModel> selectedCarts = [];
+
+      for(var item in data) {
+        selectedCarts.add(CartModel.fromJson(item));
+      }
+
+      return selectedCarts;
+    } else {
+      throw Exception('Data keranjang terpilih gagal diambil!');
+    }
+  }
 }
