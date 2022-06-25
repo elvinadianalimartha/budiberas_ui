@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -24,6 +26,7 @@ class OrderConfirmationPage extends StatefulWidget {
 
 class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   var formatter = NumberFormat.decimalPattern('id');
+  String shippingType = 'Pesan Antar';
 
   @override
   void initState() {
@@ -40,8 +43,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
   @override
   Widget build(BuildContext context) {
-    // UserDetailProvider userDetailProvider = Provider.of<UserDetailProvider>(context);
 
+    //==================== REUSABLE WIDGET FOR THIS PAGE =======================
     Widget changeBtn({
       required VoidCallback onTap,
       required String textData,
@@ -66,6 +69,113 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         ),
       );
     }
+
+    Widget shippingTypeField({
+      required Widget iconData,
+      required String typeName,
+      required List<Widget> listNotes,
+      required VoidCallback onTap,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 10, bottom: 16, left: 20, right: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: thirdColor,
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: iconData,
+                ),
+                const SizedBox(width: 20,),
+                Expanded(
+                  child: Text(
+                    typeName,
+                    style: primaryTextStyle.copyWith(
+                      fontSize: 15,
+                      fontWeight: semiBold,
+                    ),
+                  ),
+                ),
+                changeBtn(
+                  onTap: onTap,
+                  textData: 'Ganti metode'
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 50.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: listNotes,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Future<void> dialogChangePickupMethod({
+      required String imagePath,
+      required String question,
+      required TextSpan subtitles,
+      required VoidCallback onCancelClick,
+      required VoidCallback onDoneClick,
+      required String textOnDoneBtn,
+    }) async{
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialog(
+            insetPadding: const EdgeInsets.all(40),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20)
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(imagePath, width: 90,),
+                  const SizedBox(height: 12,),
+                  Text(
+                    question,
+                    style: primaryTextStyle.copyWith(fontWeight: semiBold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12,),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: subtitles,
+                  ),
+                  const SizedBox(height: 20,),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CancelButton(
+                          onClick: onCancelClick,
+                          text: 'Batal',
+                          fontSize: 14,
+                        ),
+                        const SizedBox(width: 16,),
+                        DoneButton(
+                          onClick: onDoneClick,
+                          text: textOnDoneBtn,
+                          fontSize: 14,
+                        ),
+                      ]
+                  )
+                ],
+              ),
+            ),
+          )
+      );
+    }
+    //==========================================================================
 
     Widget addressField() {
       return Padding(
@@ -125,10 +235,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                   }
               ),
               trailing: changeBtn(
-                onTap: () {
+                  onTap: () {
 
-                },
-                textData: 'Ganti alamat'
+                  },
+                  textData: 'Ganti alamat'
               ),
             ),
           ],
@@ -136,131 +246,101 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       );
     }
 
-    Future<void> dialogChangePickupMethod() async{
-      return showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          insetPadding: const EdgeInsets.all(40),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20)
+    Widget selfPickup() {
+      return Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: shippingTypeField(
+          iconData: const Icon(Icons.directions_walk, size: 20, color: Colors.white,),
+          typeName: 'Ambil Mandiri',
+          listNotes: [
+            Text(
+              'Ambil pesanan Anda di:',
+              style: greyTextStyle,
+              maxLines: null,
+            ),
+            Text(
+              'Jalan Parangtritis no.76, Mantrijeron, Yogyakarta (Seberang Pasar Prawirotaman)',
+              style: primaryTextStyle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          onTap: () {
+            dialogChangePickupMethod(
+                imagePath: 'assets/delivery_img.png',
+                question: 'Ganti metode jadi pesan antar?',
+                subtitles: TextSpan(
+                  text: 'Cukup duduk manis, pesanan Anda siap diantar sampai ke alamat tujuan 🎉',
+                  style: greyTextStyle,
+                ),
+                onDoneClick: () {
+                  setState(() {
+                    shippingType = 'Pesan Antar';
+                  });
+                  Navigator.pop(context);
+                },
+                textOnDoneBtn: 'Ya, pesan antar',
+                onCancelClick: () { 
+                  Navigator.pop(context);
+                }
+            );
+          },
+        ),
+      );
+    }
+
+    Widget delivery() {
+      return shippingTypeField(
+        iconData: Image.asset('assets/delivery_icon.png', width: 18, color: Colors.white,),
+        typeName: 'Pesan Antar',
+        listNotes: [
+          Text(
+            '+Ongkir Rp 10.000',
+            style: greyTextStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/self_pickup_icon.png', width: 30,),
-                const SizedBox(height: 12,),
-                Text(
-                  'Ganti metode jadi ambil mandiri?',
-                  style: primaryTextStyle.copyWith(fontWeight: semiBold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12,),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                      children: [
-                        TextSpan(
-                            text: 'Dengan metode ini, Anda ',
-                            style: greyTextStyle
-                        ),
-                        TextSpan(
-                            text: 'tidak perlu bayar ongkir & ambil pesanan Anda sendiri ',
-                            style: orderNotesTextStyle.copyWith(
-                              fontWeight: semiBold
-                            )
-                        ),
-                        TextSpan(
-                            text: 'di Budi Beras 😃',
-                            style: greyTextStyle
-                        ),
-                      ]
-                  )
-                ),
-                const SizedBox(height: 20,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Text(
+            'Baca S & K untuk dapat gratis ongkir', //nanti ini pakai rich text
+            style: primaryTextStyle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+        onTap: () {
+          dialogChangePickupMethod(
+              imagePath: 'assets/self_pickup.png',
+              question: 'Ganti metode jadi ambil mandiri?',
+              subtitles: TextSpan(
                   children: [
-                    CancelButton(
-                      onClick: () {
-                        Navigator.pop(context);
-                      },
-                      text: 'Batal',
-                      fontSize: 14,
+                    TextSpan(
+                        text: 'Dengan metode ini, Anda ',
+                        style: greyTextStyle
                     ),
-                    const SizedBox(width: 16,),
-                    DoneButton(
-                      onClick: () {
-                      },
-                      text: 'Ambil Mandiri',
-                      fontSize: 14,
+                    TextSpan(
+                      text: 'tidak perlu bayar ongkir & ambil pesanan Anda sendiri ',
+                      style: orderNotesTextStyle.copyWith(
+                        fontWeight: semiBold,
+                      ),
+                    ),
+                    TextSpan(
+                        text: 'di Budi Beras 😃',
+                        style: greyTextStyle
                     ),
                   ]
-                )
-              ],
-            ),
-          ),
-        )
-      );
-    }
-
-    Widget pickupMethod() {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16, left: 20, right: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              horizontalTitleGap: 10,
-              contentPadding: const EdgeInsets.all(0),
-              leading: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: thirdColor,
-                ),
-                padding: const EdgeInsets.all(6),
-                child: const Icon(Icons.delivery_dining_rounded, size: 20, color: Colors.white,),
               ),
-              title: Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  'Pesan Antar',
-                  style: primaryTextStyle.copyWith(
-                    fontSize: 15,
-                    fontWeight: semiBold,
-                  ),
-                ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '+Ongkir Rp 10.000',
-                      style: greyTextStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      'Baca S & K untuk dapat gratis ongkir', //nanti ini pakai rich text
-                      style: primaryTextStyle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              trailing: changeBtn(
-                onTap: () {
-                  dialogChangePickupMethod();
-                },
-                textData: 'Ganti metode'
-              ),
-            ),
-          ],
-        ),
+              onDoneClick: () {
+                setState(() {
+                  shippingType = 'Ambil Mandiri';
+                });
+                Navigator.pop(context);
+              },
+              textOnDoneBtn: 'Ya, ambil mandiri',
+              onCancelClick: () {
+                Navigator.pop(context);
+              }
+          );
+        },
       );
     }
 
@@ -394,9 +474,15 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
           } else {
             return ListView(
               children: [
-                addressField(),
-                const Divider(thickness: 2,),
-                pickupMethod(),
+                shippingType == 'Pesan Antar'
+                 ? Column(
+                    children: [
+                      addressField(),
+                      const Divider(thickness: 2,),
+                      delivery(),
+                    ],
+                  )
+                 : selfPickup(),
                 const Divider(thickness: 2,),
                 listOrder(),
                 const Divider(thickness: 2,),
