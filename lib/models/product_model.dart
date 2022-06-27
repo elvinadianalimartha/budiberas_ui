@@ -17,13 +17,10 @@ class ProductModel{
 
   late CategoryModel category;
 
-  late String createdAt;
-  late String updatedAt;
-  //String? deletedAt;
+  late DateTime createdAt;
+  late DateTime updatedAt;
 
   late List<GalleryModel> galleries;
-
-  //late DateTime fixCreatedAt;
 
   ProductModel({
     required this.id,
@@ -56,13 +53,27 @@ class ProductModel{
 
     DateTime parseCreated = format.parse(json['created_at']); //sesuaikan penulisan dgn backend
     DateTime parseUpdated = format.parse(json['updated_at']);
-    //DateTime parseDeleted = format.parse(json['deleted_at']);
 
-    createdAt = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(parseCreated);
-    updatedAt = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(parseUpdated);
-    //deletedAt = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(parseDeleted);
+    var stringCreatedAt = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(parseCreated);
+    var stringUpdatedAt = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(parseUpdated);
 
-    //fixCreatedAt = DateTime.parse(createdAt);
+    createdAt = DateTime.parse(stringCreatedAt);
+    updatedAt = DateTime.parse(stringUpdatedAt);
+  }
+
+  ProductModel.fromJsonFirebase(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['product_name'];
+    price = double.parse(json['price'].toString());
+    description = json['description'];
+
+    category = CategoryModel.fromJson(json['product_category']);
+
+    galleries = json['product_galleries']
+        .map<GalleryModel>((gallery) => GalleryModel.fromJson(gallery)).toList();
+
+    createdAt = DateTime.parse(json['created_at']);
+    updatedAt = DateTime.parse(json['updated_at']);
   }
 
   Map<String, dynamic> toJson() {
@@ -79,7 +90,7 @@ class ProductModel{
   }
 }
 
-class UninitializedProductModel extends ProductModel {
+class UninitializedProductModel extends ProductModel { //atau kl mau nyoba ProductModel () biar lebih singkat
   UninitializedProductModel() : super(
     id: 0,
     name: '',

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/message_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
@@ -270,10 +271,12 @@ class _DetailProductPageState extends State<DetailProductPage> {
                     return GestureDetector(
                       onTap: () {
                         authProvider.user != null
-                            ? print('chat') // Navigator.push(context,
-                                            //     MaterialPageRoute(builder: (context) => DetailChatPage(widget.product))
-                                            // );
-                            : redirectToAuthDialog();
+                        ? {
+                            context.read<PageProvider>().currentIndex = 1,
+                            context.read<MessageProvider>().linkedProduct = widget.product,
+                            Navigator.of(context).pop(),
+                          }
+                        : redirectToAuthDialog();
                       },
                       child: Container(
                         width: 50,

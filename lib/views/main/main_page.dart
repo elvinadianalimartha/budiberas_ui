@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/message_provider.dart';
 import 'package:skripsi_budiberas_9701/views/direct_to_auth_page.dart';
 import 'package:skripsi_budiberas_9701/views/main/transaction_page.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
@@ -98,7 +99,7 @@ class _MainPageState extends State<MainPage> {
         case 0:
           return HomePage();
         case 1:
-          return user!=null ? ChatPage() : DirectToAuthPage();
+          return user!=null ? ChatPage(product: context.read<MessageProvider>().linkedProduct,) : DirectToAuthPage();
         case 2:
           return user!=null ? CartPage() : DirectToAuthPage();
         case 3:

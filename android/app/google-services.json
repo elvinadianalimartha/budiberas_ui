@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "338643860970",
+    "project_id": "budi-beras",
+    "storage_bucket": "budi-beras.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338643860970:android:fbe15219df9dd69dca8693",
+        "android_client_info": {
+          "package_name": "com.pinulusuran.skripsi_budiberas_9701"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "338643860970-0jp4nvhuu5dh2l7c1qfljk0boi7j8ssm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6TSZO4O2YZpbO7EesmbK5w3-bX6vDmiY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "338643860970-0jp4nvhuu5dh2l7c1qfljk0boi7j8ssm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

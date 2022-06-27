@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/message_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
@@ -13,7 +15,9 @@ import 'package:skripsi_budiberas_9701/views/main/main_page.dart';
 import 'package:skripsi_budiberas_9701/views/order_confirmation_page.dart';
 import 'package:skripsi_budiberas_9701/views/profile_page.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -39,6 +43,7 @@ class MyApp extends StatelessWidget {
             update: (_, authProvider, orderConfirmProvider) => orderConfirmProvider!
               ..user = authProvider.user!
         ),
+        ChangeNotifierProvider(create: (context) => MessageProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
