@@ -8,10 +8,18 @@ import '../models/user_model.dart';
 class MessageService {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  Stream<List<MessageModel>> getMessagesByUserId(int userId) {
+  Future<String> getDocId(int userId) async {
+    QuerySnapshot querySnapshot = await firestore.collection('messages').where('userId', isEqualTo: userId).get();
+    String docId = querySnapshot.docs[0].id;
+    return docId;
+  }
+
+  Stream<List<MessageModel>> getMessagesByUserId(int userId) async*{
     try {
-      return firestore.collection('messages')
-          .where('userId', isEqualTo: userId)
+      yield* firestore.collection('messages')
+          .doc(await getDocId(userId))
+          .collection('messageContent')
+          .orderBy('createdAt', descending: true) //urutannya dibalik krn di listView nnti dipanggil reverse supaya bisa focus on bottom of the list
           .snapshots()
           .map((QuerySnapshot list) {
             var result = list.docs.map<MessageModel>((DocumentSnapshot message) {
@@ -22,12 +30,25 @@ class MessageService {
             }).toList();
 
             print('cek masuk 3');
-            result.sort(
-              (MessageModel a, MessageModel b) =>
-                a.createdAt.compareTo(b.createdAt),
-              );
             return result;
           });
+    } catch(e) {
+      throw Exception(e);
+    }
+  }
+
+  checkIfUserExist(int userId) {
+    try {
+      firestore.collection('messages')
+        .where('userId', isEqualTo: userId)
+        .get()
+        .then((snapshot) {
+          if(snapshot.size == 0) {
+            return false;
+          } else {
+            return true;
+          }
+        });
     } catch(e) {
       throw Exception(e);
     }
@@ -41,13 +62,23 @@ class MessageService {
     String? imageUrl,
   }) async {
       var uuid = const Uuid();
+      CollectionReference messageCollection = firestore.collection('messages');
       try {
-        //NOTE: collection(nama id yg udah dibikin di firestore console)
-        firestore.collection('messages').add({
+        //cek bila pelanggan blm pernah mengirim pesan sebelumnya, maka data dirinya disimpan dulu
+        if(checkIfUserExist(user.id!) == false) {
+          messageCollection.add({
+            'userId': user.id,
+            'userName': user.name,
+            'userImage': user.profilePhotoUrl,
+          }).then((value) => print('Data pengirim pesan baru berhasil disimpan'));
+        }
+
+        //simpan detail pesannya di collection messageContent
+        messageCollection
+        .doc(await getDocId(user.id!))
+        .collection('messageContent')
+        .add({
           'id': uuid.v4(),
-          'userId': user.id,
-          'userName': user.name,
-          'userImage': user.profilePhotoUrl,
           'isFromUser': isFromUser, //NOTE: sbg pelanggan: true, sbg pemilik: false
           'message': message,
           'product': product is UninitializedProductModel
@@ -57,9 +88,16 @@ class MessageService {
           'createdAt': DateTime.now().toString(),
           'updatedAt': DateTime.now().toString(),
           'isRead': false, //NOTE: isRead awalnya diset false dulu, nanti saat dibuka chatnya baru diupdate jadi true
-        }).then((value) => print('Message is delivered'));
+        }).then((value) => print('Pesan berhasil dikirim'));
+
+        //update last updated
+        messageCollection
+            .doc(await getDocId(user.id!))
+            .update({'lastUpdatedByCustAt' : DateTime.now().toString()}) // <-- Updated data
+            .then((_) => print('Updated'))
+            .catchError((error) => print('Update failed: $error'));
       } catch(e) {
-        throw Exception('Message fail to delivered');
+        throw Exception('Pesan gagal dikirim');
       }
   }
 }

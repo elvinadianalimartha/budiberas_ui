@@ -189,7 +189,11 @@ class _ChatPageState extends State<ChatPage> {
                   child: IconButton(
                     icon: const Icon(Icons.send, size: 20,),
                     color: Colors.white,
-                    onPressed: handleAddMessage,
+                    onPressed: () {
+                      if(messageController.text != '') {
+                        handleAddMessage(); //tdk bisa kirim kalo message masih kosong
+                      }
+                    },
                   ),
                 )
               ],
@@ -241,6 +245,7 @@ class _ChatPageState extends State<ChatPage> {
               return emptyChat();
             }
             return ListView(
+              reverse: true,
               padding: EdgeInsets.symmetric(
                 horizontal: defaultMargin,
               ),

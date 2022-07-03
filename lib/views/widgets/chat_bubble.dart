@@ -26,10 +26,10 @@ class ChatBubble extends StatelessWidget {
     Widget productPreview(){
       return Container(
         width: 240,
-        margin: EdgeInsets.only(bottom: 12),
+        margin: EdgeInsets.only(bottom: 5),
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSender ? fourthColor.withOpacity(0.8) : formColor,
+          color: isSender ? fourthColor.withOpacity(0.5) : formColor,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(isSender ? 12 : 0),
             topRight: Radius.circular(isSender ? 0 : 12),
@@ -127,7 +127,7 @@ class ChatBubble extends StatelessWidget {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: isSender ? fourthColor.withOpacity(0.8) : formColor,
+                    color: isSender ? fourthColor.withOpacity(0.8) : Color(0xffEAEAF1),
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(isSender ? 12 : 0),
                       topRight: Radius.circular(isSender ? 0 : 12),
