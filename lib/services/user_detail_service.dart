@@ -31,4 +31,33 @@ class UserDetailService {
       throw Exception('Gagal ambil default detail user!');
     }
   }
+
+  Future<List<UserDetailModel>> getAllDetailUser({
+    required String token,
+  }) async {
+    var url = '$baseUrl/allDetailUser';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      var data = jsonDecode(response.body)['data'];
+      List<UserDetailModel> details = [];
+
+      for(var item in data) {
+        details.add(UserDetailModel.fromJson(item));
+      }
+      return details;
+    } else {
+      throw Exception('Gagal ambil list detail user!');
+    }
+  }
 }

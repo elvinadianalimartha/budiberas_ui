@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/shop_info_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/address_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
@@ -36,6 +38,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
   getInit() async {
     await Future.wait([
+      //get shop lat long
+      Provider.of<ShopInfoProvider>(context, listen: false).getShopInfo(),
+      //get biaya per km
+      Provider.of<ShopInfoProvider>(context, listen: false).getShippingRates(),
       Provider.of<UserDetailProvider>(context, listen: false).getDefaultDetailUser(),
       Provider.of<OrderConfirmationProvider>(context, listen: false).getSelectedCarts(),
     ]);
@@ -212,19 +218,19 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            userDetailProvider.userDetail.addressOwner,
+                            userDetailProvider.defaultUserDetail.addressOwner,
                             style: primaryTextStyle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            userDetailProvider.userDetail.phoneNumber,
+                            userDetailProvider.defaultUserDetail.phoneNumber,
                             style: greyTextStyle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            userDetailProvider.userDetail.address,
+                            userDetailProvider.defaultUserDetail.address,
                             style: greyTextStyle,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -236,7 +242,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               ),
               trailing: changeBtn(
                   onTap: () {
-
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressPage(isFromConfirmationPage: true)));
                   },
                   textData: 'Ganti alamat'
               ),
@@ -290,57 +296,71 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     }
 
     Widget delivery() {
-      return shippingTypeField(
-        iconData: Image.asset('assets/delivery_icon.png', width: 18, color: Colors.white,),
-        typeName: 'Pesan Antar',
-        listNotes: [
-          Text(
-            '+Ongkir Rp 10.000',
-            style: greyTextStyle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            'Baca S & K untuk dapat gratis ongkir', //nanti ini pakai rich text
-            style: primaryTextStyle,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-        onTap: () {
-          dialogChangePickupMethod(
-              imagePath: 'assets/self_pickup.png',
-              question: 'Ganti metode jadi ambil mandiri?',
-              subtitles: TextSpan(
-                  children: [
-                    TextSpan(
-                        text: 'Dengan metode ini, Anda ',
-                        style: greyTextStyle
-                    ),
-                    TextSpan(
-                      text: 'tidak perlu bayar ongkir & ambil pesanan Anda sendiri ',
-                      style: orderNotesTextStyle.copyWith(
-                        fontWeight: semiBold,
-                      ),
-                    ),
-                    TextSpan(
-                        text: 'di Budi Beras 😃',
-                        style: greyTextStyle
-                    ),
-                  ]
+      return Consumer2<ShopInfoProvider, UserDetailProvider>(
+        builder: (context, shopInfoProv, userDetailProv, child) {
+          return shippingTypeField(
+            iconData: Image.asset('assets/delivery_icon.png', width: 18, color: Colors.white,),
+            typeName: 'Pesan Antar',
+            listNotes: [
+              Text(
+                'Jarak antar: ${shopInfoProv.countDistance(
+                    destinationLat: userDetailProv.defaultUserDetail.latitude,
+                    destinationLong: userDetailProv.defaultUserDetail.longitude,
+                )} km',
+                style: greyTextStyle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              onDoneClick: () {
-                setState(() {
-                  shippingType = 'Ambil Mandiri';
-                });
-                Navigator.pop(context);
-              },
-              textOnDoneBtn: 'Ya, ambil mandiri',
-              onCancelClick: () {
-                Navigator.pop(context);
-              }
+              Text(
+                '+Ongkir Rp ${formatter.format(shopInfoProv.countShippingPrice())}',
+                style: greyTextStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4,),
+              Text(
+                'Baca S & K untuk dapat gratis ongkir', //nanti ini pakai rich text
+                style: primaryTextStyle,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            onTap: () {
+              dialogChangePickupMethod(
+                  imagePath: 'assets/self_pickup.png',
+                  question: 'Ganti metode jadi ambil mandiri?',
+                  subtitles: TextSpan(
+                      children: [
+                        TextSpan(
+                            text: 'Dengan metode ini, Anda ',
+                            style: greyTextStyle
+                        ),
+                        TextSpan(
+                          text: 'tidak perlu bayar ongkir & ambil pesanan Anda sendiri ',
+                          style: orderNotesTextStyle.copyWith(
+                            fontWeight: semiBold,
+                          ),
+                        ),
+                        TextSpan(
+                            text: 'di Budi Beras 😃',
+                            style: greyTextStyle
+                        ),
+                      ]
+                  ),
+                  onDoneClick: () {
+                    setState(() {
+                      shippingType = 'Ambil Mandiri';
+                    });
+                    Navigator.pop(context);
+                  },
+                  textOnDoneBtn: 'Ya, ambil mandiri',
+                  onCancelClick: () {
+                    Navigator.pop(context);
+                  }
+              );
+            },
           );
-        },
+        }
       );
     }
 
@@ -379,8 +399,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Widget billingDetail() {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-        child: Consumer<OrderConfirmationProvider>(
-          builder: (context, orderConfirmProv, child) {
+        child: Consumer2<OrderConfirmationProvider, ShopInfoProvider>(
+          builder: (context, orderConfirmProv, shopInfoProv, child) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -414,7 +434,9 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       style: greyTextStyle,
                     ),
                     Text(
-                      'Rp ',
+                      shippingType == 'Pesan Antar'
+                          ? 'Rp ${formatter.format(shopInfoProv.countShippingPrice())}'
+                          : 'Rp 0',
                       style: greyTextStyle,
                     )
                   ],
@@ -433,7 +455,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                       ),
                     ),
                     Text(
-                      'Rp ',
+                      'Rp ${formatter.format(shopInfoProv.countTotalBill(shippingType))}',
                       style: priceTextStyle.copyWith(
                         fontWeight: semiBold,
                         fontSize: 16,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/address_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/are_you_sure_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
@@ -57,18 +58,25 @@ class ProfilePage extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Daftar Alamat',
-                  style: primaryTextStyle,
+          InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressPage(isFromConfirmationPage: false)));
+            },
+            child: Ink(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Daftar Alamat',
+                      style: primaryTextStyle,
+                    ),
+                    Icon(Icons.chevron_right, color: secondaryTextColor,)
+                  ],
                 ),
-                Icon(Icons.chevron_right, color: secondaryTextColor,)
-              ],
-            ),
+              ),
+            )
           ),
         ],
       );

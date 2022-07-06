@@ -3,7 +3,7 @@ class UserDetailModel{
   late String addressOwner, address, phoneNumber;
   String? addressNotes;
   late double latitude, longitude;
-  late bool defaultAddress;
+  late int defaultAddress;
 
   UserDetailModel({
     required this.id,
@@ -26,6 +26,6 @@ class UserDetailModel{
     latitude = json['latitude'];
     longitude = json['longitude'];
     phoneNumber = json['phone_number'];
-    defaultAddress = json['default_address'] == 1 ? true : false;
+    defaultAddress = json['default_address'];
   }
 }

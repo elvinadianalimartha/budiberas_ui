@@ -8,6 +8,7 @@ import 'package:skripsi_budiberas_9701/providers/message_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/shop_info_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
 import 'package:skripsi_budiberas_9701/splash_page.dart';
 import 'package:skripsi_budiberas_9701/views/form/login_form.dart';
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProxyProvider<AuthProvider, UserDetailProvider>(
           create: (_) => UserDetailProvider(),
           update: (_, authProvider, userDetailProvider) => userDetailProvider!
-            ..user = authProvider.user!
+            ..user = authProvider.user! //set nilai user yg ada di dlm kelas UserDetailProvider dgn nilai user dr authProvider
         ),
         ChangeNotifierProxyProvider<AuthProvider, OrderConfirmationProvider>(
             create: (_) => OrderConfirmationProvider(),
@@ -44,6 +45,11 @@ class MyApp extends StatelessWidget {
               ..user = authProvider.user!
         ),
         ChangeNotifierProvider(create: (context) => MessageProvider()),
+        ChangeNotifierProxyProvider<OrderConfirmationProvider, ShopInfoProvider>(
+          create: (_) => ShopInfoProvider(),
+          update: (_, orderConfirmProvider, shopInfoProvider) => shopInfoProvider!
+            ..orderTotalPrice = orderConfirmProvider.confirmCountTotalPrice()
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
