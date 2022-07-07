@@ -86,27 +86,14 @@ class SelectedCartCard extends StatelessWidget {
                       top: BorderSide(color: secondaryTextColor, width: 0.3),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'NB: ',
-                        style: greyTextStyle.copyWith(fontWeight: medium, fontSize: 13),
-                      ),
-                      Flexible(
-                        child: Text(
-                          selectedCart.orderNotes!,
-                          style: greyTextStyle.copyWith(fontSize: 13),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )
-                    ],
-                  )
+                  child: Text(
+                    'NB: ${selectedCart.orderNotes!}',
+                    style: greyTextStyle.copyWith(fontWeight: medium, fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 )
                 : const SizedBox(),
-
               ],
             ),
           ),
