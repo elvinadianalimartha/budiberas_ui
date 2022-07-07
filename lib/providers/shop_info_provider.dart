@@ -55,7 +55,6 @@ class ShopInfoProvider with ChangeNotifier{
     }
   }
 
-  //nek gaisa keupdate, berarti mungkin hrs pake notifylistener
   countDistance({
     required double destinationLat,
     required double destinationLong,
@@ -70,10 +69,28 @@ class ShopInfoProvider with ChangeNotifier{
 
   countShippingPrice(){
     double roundDistance = double.parse(distanceInKm.toStringAsFixed(1));
-    double result =  roundDistance * 2000;
+    double specialPrice = 0;
+    double result = 0;
 
-    //2000nya nnti diganti shipping price standar.
-    //Cek apakah totalnya nyampe min price dan jaraknya gak max dr list shipping price khusus (pake for)
+    double standardPrice = _shippingRates.where((rate) => rate.shippingName.toLowerCase() == 'standar').first.shippingPrice;
+
+    List<ShippingRatesModel> specialCriteria = _shippingRates.where((rate) => rate.shippingName.toLowerCase() == 'khusus').toList();
+
+    if(specialCriteria.isNotEmpty) {
+      for(var item in specialCriteria) {
+        if(distanceInKm <= item.maxDistance!.toDouble() && _orderTotalPrice >= item.minOrderPrice!.toDouble()) {
+          specialPrice = item.shippingPrice;
+          break;
+        }
+      }
+    }
+
+    if(specialPrice != 0) {
+      result = roundDistance * specialPrice;
+    } else {
+      result = roundDistance * standardPrice;
+    }
+
     return result.round();
   }
 
