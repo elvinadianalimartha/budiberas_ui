@@ -54,19 +54,59 @@ class SelectedCartCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4,),
-                Text(
-                  '${selectedCart.quantity} barang',
-                  style: greyTextStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Text(
+                      '${selectedCart.quantity} barang',
+                      style: greyTextStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 5,),
+                    Icon(Icons.circle, size: 5, color: secondaryTextColor,),
+                    const SizedBox(width: 5,),
+                    Text(
+                      'Rp ${formatter.format(subtotal)}',
+                      style: priceTextStyle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4,),
-                Text(
-                  'Rp ${formatter.format(subtotal)}',
-                  style: priceTextStyle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                const SizedBox(height: 8,),
+                selectedCart.orderNotes != null
+                ? Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: formColor,
+                    border: Border(
+                      left: BorderSide(width: 4, color: fourthColor),
+                      bottom: BorderSide(color: secondaryTextColor, width: 0.3),
+                      right: BorderSide(color: secondaryTextColor, width: 0.3),
+                      top: BorderSide(color: secondaryTextColor, width: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'NB: ',
+                        style: greyTextStyle.copyWith(fontWeight: medium, fontSize: 13),
+                      ),
+                      Flexible(
+                        child: Text(
+                          selectedCart.orderNotes!,
+                          style: greyTextStyle.copyWith(fontSize: 13),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                    ],
+                  )
+                )
+                : const SizedBox(),
+
               ],
             ),
           ),

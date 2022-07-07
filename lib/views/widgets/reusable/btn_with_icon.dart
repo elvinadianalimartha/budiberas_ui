@@ -6,12 +6,14 @@ class BtnWithIcon extends StatelessWidget {
   final VoidCallback? onClick;
   final String text;
   final double? fontSize;
+  final Color backgroundColor;
 
   const BtnWithIcon({
     Key? key,
     this.onClick,
     required this.text,
     this.fontSize = 16,
+    this.backgroundColor = const Color(0xffF59F02),
   }) : super(key: key);
 
   @override
@@ -19,7 +21,7 @@ class BtnWithIcon extends StatelessWidget {
     return TextButton(
       onPressed: onClick,
       style: TextButton.styleFrom(
-          backgroundColor: btnColor,
+          backgroundColor: backgroundColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

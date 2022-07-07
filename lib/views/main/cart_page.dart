@@ -222,14 +222,19 @@ class _CartPageState extends State<CartPage> {
                 ],
               ),
               SizedBox(
-                  height: 50,
-                  child: BtnWithIcon(
-                    text: 'Pesan Sekarang',
-                    onClick: () {
-                      //dialogListSelectedCart(cartProvider);
-                      Navigator.pushNamed(context, '/order-confirmation');
-                    },
-                  )
+                height: 50,
+                child: cartProvider.cartSelected.isNotEmpty
+                ? BtnWithIcon(
+                  text: 'Pesan Sekarang',
+                  onClick: () {
+                    Navigator.pushNamed(context, '/order-confirmation');
+                  },
+                )
+                : BtnWithIcon(
+                  text: 'Pesan Sekarang',
+                  backgroundColor: secondaryTextColor.withOpacity(0.6),
+                  onClick: (){},
+                )
               )
             ],
           ),
