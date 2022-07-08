@@ -43,7 +43,7 @@ class _AddressPageState extends State<AddressPage> {
               width: 170,
               child: TextButton(
                 onPressed: () {
-
+                  Navigator.pushNamed(context, '/add-address');
                 },
                 style: TextButton.styleFrom(
                   backgroundColor: priceColor,

@@ -68,4 +68,14 @@ class UserDetailProvider with ChangeNotifier{
     loadingAll = false;
     notifyListeners();
   }
+
+  int selectedValue = 0;
+  void changeDefaultVal(int value) {
+    if(value == 0) {
+      selectedValue = 0;
+    } else {
+      selectedValue = 1;
+    }
+    notifyListeners();
+  }
 }

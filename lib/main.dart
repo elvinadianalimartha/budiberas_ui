@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skripsi_budiberas_9701/providers/address_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
@@ -11,6 +12,7 @@ import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/shop_info_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
 import 'package:skripsi_budiberas_9701/splash_page.dart';
+import 'package:skripsi_budiberas_9701/views/form/add_address.dart';
 import 'package:skripsi_budiberas_9701/views/form/login_form.dart';
 import 'package:skripsi_budiberas_9701/views/main/main_page.dart';
 import 'package:skripsi_budiberas_9701/views/order_confirmation_page.dart';
@@ -50,6 +52,7 @@ class MyApp extends StatelessWidget {
           update: (_, orderConfirmProvider, shopInfoProvider) => shopInfoProvider!
             ..orderTotalPrice = orderConfirmProvider.confirmCountTotalPrice()
         ),
+        ChangeNotifierProvider(create: (context) => AddressProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -59,6 +62,7 @@ class MyApp extends StatelessWidget {
           '/sign-in': (context) => LoginForm(),
           '/profile': (context) => ProfilePage(),
           '/order-confirmation': (context) => OrderConfirmationPage(),
+          '/add-address': (context) => FormAddAddress(),
         },
       ),
     );
