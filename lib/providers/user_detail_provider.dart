@@ -56,7 +56,7 @@ class UserDetailProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  //get all detail user for address management
+  //get all detail user for address management or setting profile
   Future<void> getAllDetailUser() async {
     loadingAll = true;
     try {
@@ -66,16 +66,6 @@ class UserDetailProvider with ChangeNotifier{
       print(e);
     }
     loadingAll = false;
-    notifyListeners();
-  }
-
-  int selectedValue = 0;
-  void changeDefaultVal(int value) {
-    if(value == 0) {
-      selectedValue = 0;
-    } else {
-      selectedValue = 1;
-    }
     notifyListeners();
   }
 }

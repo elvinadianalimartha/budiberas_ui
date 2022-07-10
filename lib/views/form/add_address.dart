@@ -2,17 +2,22 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/models/regency_district_model.dart';
-import 'package:skripsi_budiberas_9701/providers/address_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/address_management_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/places_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
+import 'package:skripsi_budiberas_9701/services/places_service.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/text_field.dart';
 
 import '../../models/address_suggestion_model.dart';
 import '../../theme.dart';
 import '../widgets/reusable/app_bar.dart';
 import '../widgets/reusable/done_button.dart';
+
+import 'package:latlong2/latlong.dart' as lat_long;
 
 class FormAddAddress extends StatefulWidget {
   const FormAddAddress({Key? key}) : super(key: key);
@@ -25,40 +30,79 @@ class _FormAddAddressState extends State<FormAddAddress> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   TextEditingController ownerNameController = TextEditingController(text: '');
   TextEditingController phoneNumberController = TextEditingController(text: '');
-  TextEditingController detailController = TextEditingController(text: '');
   TextEditingController addressController = TextEditingController(text: '');
-  Object? _value;
-  int? _regencyId;
+  TextEditingController? detailController;
+
+  bool isAddressFilled = false;
+  String? _regencyName;
+  String? selectedRegency;
   String? selectedDistrict;
 
-  late AddressProvider addressProvider;
+  late PlacesProvider placesProvider;
+  late AddressManagementProvider addressManagementProvider;
+  late UserDetailProvider userDetailProvider;
+
+  final MapController _mapController = MapController();
+  bool mapIsCreated = false;
+  double? latitudeForMap;
+  double? longitudeForMap;
 
   @override
   void initState() {
     super.initState();
-    addressProvider = Provider.of<AddressProvider>(context, listen: false);
+    placesProvider = Provider.of<PlacesProvider>(context, listen: false);
+    addressManagementProvider = Provider.of<AddressManagementProvider>(context, listen: false);
+    userDetailProvider = Provider.of<UserDetailProvider>(context, listen: false);
+    getInit();
   }
 
   getInit() async {
     Future.wait([
-      addressProvider.getLocalRegencies(),
+      placesProvider.getLocalRegencies(),
     ]);
   }
 
   @override
   void dispose() {
     super.dispose();
-    addressProvider.disposeInputAddress();
+    placesProvider.disposeInputAddress();
+    _mapController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
 
-    // resetForm() {
-    //   ownerNameController.clear();
-    //   phoneNumberController.clear();
-    //   detailController.clear();
-    // }
+    clearAddress() {
+      addressController.clear();
+      setState(() {
+        isAddressFilled = false;
+      });
+    }
+
+    Widget note() {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          color: const Color(0xffFFEDCB),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Catatan',
+              style: primaryTextStyle.copyWith(fontWeight: semiBold),
+            ),
+            Text(
+              'Saat ini Toko Sembako Budi Beras hanya melayani pengantaran pesanan '
+                  'di area Daerah Istimewa Yogyakarta',
+              style: primaryTextStyle,
+              textAlign: TextAlign.justify,
+            ),
+          ],
+        )
+      );
+    }
 
     Widget ownerName() {
       return Column(
@@ -75,23 +119,13 @@ class _FormAddAddressState extends State<FormAddAddress> {
           TextFormFieldWidget(
             hintText: 'Masukkan nama penerima pesanan',
             controller: ownerNameController,
+            validator: (value) {
+              if (value!.isEmpty) {
+                return 'Nama penerima harus diisi';
+              }
+              return null;
+            },
           ),
-          // Consumer<ProductProvider>(
-          //   builder: (context, productProvider, child) {
-          //     return TextFormFieldWidget(
-          //       hintText: 'Masukkan nama penerima pesanan',
-          //       controller: ownerNameController,
-          //       validator: (value) {
-          //         if (value!.isEmpty) {
-          //           return 'Nama produk harus diisi';
-          //         } else if(productProvider.checkIfUsed(value)) {
-          //           return 'Nama produk sudah pernah digunakan';
-          //         }
-          //         return null;
-          //       },
-          //     );
-          //   }
-          // ),
         ],
       );
     }
@@ -116,6 +150,10 @@ class _FormAddAddressState extends State<FormAddAddress> {
             validator: (value) {
               if (value!.isEmpty) {
                 return 'No. HP harus diisi';
+              } else if(value.length < 10) {
+                return 'No. HP minimal 10 digit';
+              } else if(value.length > 13) {
+                return 'No. HP maksimal 13 digit';
               }
               return null;
             },
@@ -133,10 +171,17 @@ class _FormAddAddressState extends State<FormAddAddress> {
             'Kabupaten/Kota',
             style: primaryTextStyle.copyWith(fontWeight: medium),
           ),
-          Consumer<AddressProvider>(
-            builder: (context, addressProvider, child) {
-              List<RegencyModel> listRegencies = addressProvider.regencies;
+          Consumer<PlacesProvider>(
+            builder: (context, placesProvider, child) {
+              List<RegencyModel> listRegencies = placesProvider.regencies;
               return DropdownButtonFormField2(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: (value) {
+                  if(value == null) {
+                    return 'Kabupaten/kota harus dipilih';
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   isCollapsed: true,
                   isDense: true,
@@ -152,20 +197,21 @@ class _FormAddAddressState extends State<FormAddAddress> {
                 items: listRegencies.map((item) {
                   return DropdownMenuItem<Object>(
                     child: Text(item.name, style: primaryTextStyle.copyWith(fontSize: 14),),
-                    value: item.id,
+                    value: item.name,
                   );
                 }).toList(),
                 onChanged: (value) {
-                  if(_regencyId != null) {
-                    addressProvider.districts = [];
-                    selectedDistrict = null; //ini untuk menghilangkan value sebelumnya yg ada di bagian district/kecamatan
+                  if(_regencyName != null) {
+                    //reset value sebelumnya yg ada di bagian district/kecamatan
+                    placesProvider.districts = [];
+                    selectedDistrict = null;
 
-                    addressProvider.addressSuggestions = [];
+                    //reset value alamat
+                    placesProvider.addressSuggestions = [];
                     addressController.text = '';
                   }
-                  _value = value;
-                  _regencyId = _value as int;
-                  addressProvider.getDistrictsByRegency(_regencyId!);
+                  _regencyName = value.toString();
+                  placesProvider.getDistrictsByRegency(_regencyName!);
                 }
               );
             }
@@ -183,43 +229,47 @@ class _FormAddAddressState extends State<FormAddAddress> {
             'Kecamatan',
             style: primaryTextStyle.copyWith(fontWeight: medium),
           ),
-          Consumer<AddressProvider>(
-              builder: (context, addressProvider, child) {
-                List<DistrictModel> listDistricts = addressProvider.districts;
+          Consumer<PlacesProvider>(
+              builder: (context, placesProvider, child) {
+                List<DistrictModel> listDistricts = placesProvider.districts;
                 return DropdownButtonFormField2(
-                    decoration: InputDecoration(
-                      isCollapsed: true,
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: formColor,
-                      contentPadding: const EdgeInsets.all(16),
-                      // addressProvider.loadingDistricts
-                      //   ? const CircularProgressIndicator()
-                      //   : null
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if(value == null) {
+                      return 'Kecamatan harus dipilih';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    isCollapsed: true,
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
-                    hint: Text('Pilih kecamatan', style: secondaryTextStyle,),
-                    items: listDistricts.map((item) {
-                      return DropdownMenuItem<Object>(
-                        child: Text(item.name, style: primaryTextStyle.copyWith(fontSize: 14),),
-                        value: item.name,
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if(selectedDistrict != null) {
-                        //ketika districtnya diganti, alamatnya jg akan ikut terganti shg dihapus
-                        addressController.text = '';
-                      }
-                      setState(() {
-                        selectedDistrict = value.toString();
-                      });
-                      if(selectedDistrict != null) {
-                        addressProvider.getAddressSuggestions(selectedDistrict!); //mengambil daftar alamat berdasarkan kecamatan
-                      }
-                    },
+                    filled: true,
+                    fillColor: formColor,
+                    contentPadding: const EdgeInsets.all(16),
+                  ),
+                  hint: Text('Pilih kecamatan', style: secondaryTextStyle,),
+                  items: listDistricts.map((item) {
+                    return DropdownMenuItem<Object>(
+                      child: Text(item.name, style: primaryTextStyle.copyWith(fontSize: 14),),
+                      value: item.name,
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if(selectedDistrict != null) {
+                      //ketika districtnya diganti, alamatnya jg akan ikut terganti shg dihapus
+                      addressController.text = '';
+                    }
+                    setState(() {
+                      selectedDistrict = value.toString();
+                    });
+                    if(selectedDistrict != null) {
+                      placesProvider.getAddressSuggestions(selectedDistrict!); //mengambil daftar alamat berdasarkan kecamatan
+                    }
+                  },
                   value: selectedDistrict,
                 );
               }
@@ -228,7 +278,7 @@ class _FormAddAddressState extends State<FormAddAddress> {
       );
     }
 
-    //alamat
+    //pilih alamat
     Widget addressAutocomplete() {
       return Column(
         mainAxisSize: MainAxisSize.min,
@@ -240,27 +290,56 @@ class _FormAddAddressState extends State<FormAddAddress> {
               fontWeight: medium,
             ),
           ),
-          //kasih loading
-          Consumer<AddressProvider>(
-            builder: (context, addressProv, child) {
-              return TypeAheadFormField(
+          Text(
+            'Jika alamat tidak tersedia pada daftar, silakan pilih '
+                'alamat yang paling mendekati lalu sesuaikan titik lokasi yang '
+                'ada pada peta',
+            style: secondaryTextStyle,
+          ),
+          Consumer<PlacesProvider>(
+            builder: (context, placesProvider, child) {
+              return TypeAheadFormField<AddressSuggestionModel>(
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 itemBuilder: (context, AddressSuggestionModel suggestion) {
                   return ListTile(
-                    //crossAxisAlignment: CrossAxisAlignment.start,
                     title: Text(suggestion.displayName, style: primaryTextStyle,),
                   );
                 },
+                validator: (value) {
+                  if(value!.isEmpty) {
+                    return 'Alamat harus dipilih';
+                  }
+                  return null;
+                },
                 debounceDuration: const Duration(milliseconds: 500),
                 suggestionsCallback: (String pattern) {
-                  //kalo mau dibuat fungsi sendiri di addressProv
-                  return addressProv.addressSuggestions.where((suggestion) => suggestion.displayName.toLowerCase().contains(pattern.toLowerCase()));
+                  return placesProvider.addressSuggestions.where((suggestion) => suggestion.displayName.toLowerCase().contains(pattern.toLowerCase()));
                 },
                 onSuggestionSelected: (AddressSuggestionModel suggestion) {
                   addressController.text = suggestion.displayName;
+                  setState(() {
+                    latitudeForMap = suggestion.lat;
+                    longitudeForMap = suggestion.lon;
+                  });
+                  if(mapIsCreated == true) {
+                    _mapController.move(lat_long.LatLng(latitudeForMap!, longitudeForMap!), 14.0);
+                  }
                 },
                 textFieldConfiguration: TextFieldConfiguration(
+                  enabled: selectedDistrict == null ? false : true,
                   style: primaryTextStyle,
                   controller: addressController,
+                  onChanged: (value) {
+                    if(value.isNotEmpty) {
+                      setState(() {
+                        isAddressFilled = true;
+                      });
+                    } else {
+                      setState(() {
+                        isAddressFilled = false;
+                      });
+                    }
+                  },
                   decoration: InputDecoration(
                     isCollapsed: true,
                     isDense: true,
@@ -273,12 +352,75 @@ class _FormAddAddressState extends State<FormAddAddress> {
                     fillColor: formColor,
                     hintText: 'Masukkan alamat penerima',
                     hintStyle: secondaryTextStyle,
+                    suffixIcon: isAddressFilled
+                    ? InkWell(
+                        onTap: () {
+                          clearAddress();
+                        },
+                        child: const Icon(Icons.cancel)
+                      )
+                    : null,
                   ),
                 ),
               );
             }
           ),
         ],
+      );
+    }
+
+    changePoint(double lat, double lon) async{
+      AddressSuggestionModel address = await PlaceApi().reverseGeocode(lat, lon);
+      print(address.displayName);
+      setState(() {
+        addressController.text = address.displayName;
+      });
+    }
+
+    //preview open street map
+    Widget mapPreview() {
+      mapIsCreated = true;
+      return Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        height: 200,
+        child: FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            onTap: (_, latLong) {
+              setState(() {
+                latitudeForMap = latLong.latitude;
+                longitudeForMap = latLong.longitude;
+              });
+              //get address based on lat lon clicked by marker
+              changePoint(latLong.latitude, latLong.longitude);
+
+              print(latLong.latitude);
+              print(latLong.longitude);
+            },
+            center: lat_long.LatLng(latitudeForMap!, longitudeForMap!),
+            minZoom: 11.0,
+            maxZoom: 18.0,
+            zoom: 14.0,
+          ),
+          layers: [
+            TileLayerOptions(
+              urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              subdomains: ['a', 'b', 'c'],
+            ),
+            MarkerLayerOptions(
+              markers: [
+                Marker(
+                  width: 20.0,
+                  height: 20.0,
+                  point: lat_long.LatLng(latitudeForMap!, longitudeForMap!),
+                  builder: (context) => const SizedBox(
+                    child: Icon(Icons.location_on, color: Colors.red, size: 30,),
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
       );
     }
 
@@ -305,8 +447,6 @@ class _FormAddAddressState extends State<FormAddAddress> {
       );
     }
 
-    //map
-
     //set to default or not
     Widget chooseDefault() {
       return Column(
@@ -319,18 +459,17 @@ class _FormAddAddressState extends State<FormAddAddress> {
               fontWeight: medium,
             ),
           ),
-          Consumer<UserDetailProvider>(
-            builder: (context, userDetailProvider, child) {
-              print(userDetailProvider.selectedValue);
+          Consumer<AddressManagementProvider>(
+            builder: (context, addressManageProvider, child) {
               return Row(
                 children: [
                   Flexible(
                     child: RadioListTile<int>(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 0),
                       value: 1,
-                      groupValue: userDetailProvider.selectedValue,
+                      groupValue: addressManageProvider.selectedValue,
                       onChanged: (value) {
-                        userDetailProvider.changeDefaultVal(value!);
+                        addressManageProvider.changeDefaultVal(value!);
                       },
                       title: Text('Ya', style: primaryTextStyle.copyWith(fontSize: 14),),
                       activeColor: priceColor,
@@ -340,9 +479,9 @@ class _FormAddAddressState extends State<FormAddAddress> {
                     child: RadioListTile<int>(
                       contentPadding: const EdgeInsets.symmetric(horizontal: 0),
                       value: 0,
-                      groupValue: userDetailProvider.selectedValue,
+                      groupValue: addressManageProvider.selectedValue,
                       onChanged: (value) {
-                        userDetailProvider.changeDefaultVal(value!);
+                        addressManageProvider.changeDefaultVal(value!);
                       },
                       title: Text('Tidak', style: primaryTextStyle.copyWith(fontSize: 14)),
                       activeColor: priceColor,
@@ -356,6 +495,30 @@ class _FormAddAddressState extends State<FormAddAddress> {
       );
     }
 
+    handleAddNewAddress() async{
+      if(await addressManagementProvider.createNewAddress(
+          addressOwner: ownerNameController.text,
+          regency: _regencyName!,
+          district: selectedDistrict!,
+          address: addressController.text,
+          addressNotes: detailController?.text,
+          latitude: latitudeForMap!,
+          longitude: longitudeForMap!,
+          phoneNumber: phoneNumberController.text,
+          defaultAddress: addressManagementProvider.selectedValue)
+      ) {
+        await userDetailProvider.getAllDetailUser();
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data alamat berhasil tersimpan'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data gagal ditambahkan'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
+        );
+      }
+    }
+
     Widget saveButton(){
       return SizedBox(
         height: 50,
@@ -364,7 +527,7 @@ class _FormAddAddressState extends State<FormAddAddress> {
           text: 'Simpan',
           onClick: () {
             if(_formKey.currentState!.validate()) {
-              //handleAddData();
+              handleAddNewAddress();
             }
           },
         ),
@@ -379,6 +542,9 @@ class _FormAddAddressState extends State<FormAddAddress> {
           child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                note(),
+                const SizedBox(height: 20,),
+
                 ownerName(),
                 const SizedBox(height: 20,),
                 phoneNumber(),
@@ -391,7 +557,12 @@ class _FormAddAddressState extends State<FormAddAddress> {
                 const SizedBox(height: 20,),
                 addressAutocomplete(),
                 const SizedBox(height: 20,),
+                latitudeForMap != null
+                  ? mapPreview()
+                  : const SizedBox(),
+
                 detailAddress(),
+
                 const SizedBox(height: 20,),
                 chooseDefault(),
                 const SizedBox(height: 36,),
@@ -421,7 +592,7 @@ class _FormAddAddressState extends State<FormAddAddress> {
 
     return Scaffold(
       appBar: customAppBar(text: 'Form Tambah Alamat'),
-      body: Consumer<AddressProvider>(
+      body: Consumer<PlacesProvider>(
         builder: (context, data, child) {
           return data.loadingRegencies
               ? loadingGetData()

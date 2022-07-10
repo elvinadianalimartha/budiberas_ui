@@ -1,7 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:skripsi_budiberas_9701/providers/address_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/address_management_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/places_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/category_provider.dart';
@@ -42,9 +43,9 @@ class MyApp extends StatelessWidget {
             ..user = authProvider.user! //set nilai user yg ada di dlm kelas UserDetailProvider dgn nilai user dr authProvider
         ),
         ChangeNotifierProxyProvider<AuthProvider, OrderConfirmationProvider>(
-            create: (_) => OrderConfirmationProvider(),
-            update: (_, authProvider, orderConfirmProvider) => orderConfirmProvider!
-              ..user = authProvider.user!
+          create: (_) => OrderConfirmationProvider(),
+          update: (_, authProvider, orderConfirmProvider) => orderConfirmProvider!
+            ..user = authProvider.user!
         ),
         ChangeNotifierProvider(create: (context) => MessageProvider()),
         ChangeNotifierProxyProvider<OrderConfirmationProvider, ShopInfoProvider>(
@@ -52,7 +53,12 @@ class MyApp extends StatelessWidget {
           update: (_, orderConfirmProvider, shopInfoProvider) => shopInfoProvider!
             ..orderTotalPrice = orderConfirmProvider.confirmCountTotalPrice()
         ),
-        ChangeNotifierProvider(create: (context) => AddressProvider()),
+        ChangeNotifierProvider(create: (context) => PlacesProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, AddressManagementProvider>(
+          create: (_) => AddressManagementProvider(),
+          update: (_, authProvider, addressManageProvider) => addressManageProvider!
+            ..user = authProvider.user!,
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

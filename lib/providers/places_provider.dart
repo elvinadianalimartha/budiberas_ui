@@ -3,7 +3,7 @@ import 'package:skripsi_budiberas_9701/models/address_suggestion_model.dart';
 import 'package:skripsi_budiberas_9701/models/regency_district_model.dart';
 import 'package:skripsi_budiberas_9701/services/places_service.dart';
 
-class AddressProvider with ChangeNotifier {
+class PlacesProvider with ChangeNotifier {
   List<RegencyModel> _regencies = [];
 
   List<RegencyModel> get regencies => _regencies;
@@ -39,10 +39,10 @@ class AddressProvider with ChangeNotifier {
   }
   bool loadingDistricts = false;
 
-  Future<void> getDistrictsByRegency(int regencyId) async{
+  Future<void> getDistrictsByRegency(String regencyName) async{
     loadingDistricts = true;
     try {
-      List<DistrictModel> districts = await DistrictService().getDistrictsByRegency(regencyId);
+      List<DistrictModel> districts = await DistrictService().getDistrictsByRegency(regencyName);
       _districts = districts;
     } catch (e) {
       print(e);
@@ -76,7 +76,6 @@ class AddressProvider with ChangeNotifier {
   }
 
   //=================== DISPOSE ================================================
-
   disposeInputAddress() {
     _districts = [];
     _addressSuggestions = [];

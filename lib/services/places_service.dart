@@ -1,25 +1,10 @@
 import 'dart:convert';
 
-import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 import 'package:skripsi_budiberas_9701/models/regency_district_model.dart';
 
 import '../models/address_suggestion_model.dart';
-
-class GetCoordinateGeocoding {
-  late double latitude, longitude;
-  getCoordinate(String input) async {
-    List<Location> locations = await locationFromAddress(input);
-    for (var location in locations) {
-      latitude = location.latitude;
-      longitude = location.longitude;
-    }
-    print(latitude);
-    print(longitude);
-    return {longitude, latitude};
-  }
-}
 
 class RegencyService {
   String baseUrl = constants.baseUrl;
@@ -53,16 +38,20 @@ class RegencyService {
 class DistrictService {
   String baseUrl = constants.baseUrl;
 
-  Future<List<DistrictModel>> getDistrictsByRegency(int regencyId) async {
-    var url = '$baseUrl/localDistricts/$regencyId';
+  Future<List<DistrictModel>> getDistrictsByRegency(String regencyName) async {
+    var url = '$baseUrl/localDistricts';
 
     var headers = {
       'Content-Type': 'application/json',
       'Connection': 'keep-alive',
     };
 
+    Map<String, dynamic> qParams = {
+      'regency_name': regencyName
+    };
+
     var response = await http.get(
-        Uri.parse(url),
+        Uri.parse(url).replace(queryParameters: qParams),
         headers: headers
     );
 
@@ -82,7 +71,7 @@ class DistrictService {
 //get address data from Nominatim API
 class PlaceApi{
   Future<List<AddressSuggestionModel>> fetchSuggestions(String input) async {
-    var request = 'https://nominatim.openstreetmap.org/search?format=json&state=daerah%istimewa%yogyakarta&city=$input&street=jalan';
+    var request = constants.mapUrl + '/search?format=json&state=daerah%istimewa%yogyakarta&city=$input&street=jalan';
 
     var response = await http.get(
       Uri.parse(request),
@@ -90,12 +79,27 @@ class PlaceApi{
 
     print(response.body);
 
-    List result = jsonDecode(response.body);
+    List data = jsonDecode(response.body);
 
-    List<AddressSuggestionModel> address = [];
-    for(var item in result) {
-      address.add(AddressSuggestionModel.fromJson(item));
+    List<AddressSuggestionModel> listAddress = [];
+    for(var item in data) {
+      listAddress.add(AddressSuggestionModel.fromJson(item));
     }
+
+    return listAddress;
+  }
+
+  Future<AddressSuggestionModel> reverseGeocode(double lat, double lon) async {
+    var request = constants.mapUrl + '/reverse?lat=$lat&lon=$lon&format=json';
+
+    var response = await http.get(
+      Uri.parse(request),
+    );
+
+    print(response.body);
+
+    var data = jsonDecode(response.body);
+    AddressSuggestionModel address = AddressSuggestionModel.fromJson(data);
 
     return address;
   }
