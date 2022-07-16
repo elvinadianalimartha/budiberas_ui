@@ -170,10 +170,10 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Icon(Icons.access_time_filled, color: secondaryColor,),
                               const SizedBox(width: 10,),
-                              Text(
-                                'Buka: 07.00 - 17.00',
-                                style: whiteTextStyle.copyWith(
-                                  fontSize: 16,
+                              Flexible(
+                                child: Text(
+                                  'Buka: 07.00 - 17.00',
+                                  style: whiteTextStyle
                                 ),
                               ),
                             ],

@@ -35,38 +35,43 @@ class _AddressPageState extends State<AddressPage> {
   @override
   Widget build(BuildContext context) {
     Widget btnAddAddress() {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Align(
-          alignment: Alignment.topRight,
-          child: SizedBox(
-              width: 170,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/add-address');
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: priceColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)
+      return Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Align(
+            alignment: Alignment.topRight,
+            child: SizedBox(
+                width: 200,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/add-address');
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: priceColor,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)
+                    ),
+                    padding: const EdgeInsets.all(8),
                   ),
-                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_circle_outlined, color: fourthColor,),
+                      const SizedBox(width: 11,),
+                      Flexible(
+                        child: Text(
+                          'Tambah Alamat',
+                          style: whiteTextStyle.copyWith(
+                            fontWeight: medium,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_circle_outlined, color: fourthColor,),
-                    const SizedBox(width: 11,),
-                    Text(
-                      'Tambah Alamat',
-                      style: whiteTextStyle.copyWith(
-                        fontWeight: medium,
-                      ),
-                    )
-                  ],
-                ),
-              ),
+            ),
           ),
         ),
       );
@@ -105,9 +110,10 @@ class _AddressPageState extends State<AddressPage> {
     }
 
     Widget btnDone() {
-      return Padding(
+      return Container(
+        color: Colors.white,
         padding: const EdgeInsets.all(16.0),
-        child: Container(
+        child: SizedBox(
           height: 50,
           child: DoneButton(
             text: 'Selesai',

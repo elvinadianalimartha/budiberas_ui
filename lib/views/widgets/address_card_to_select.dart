@@ -144,22 +144,15 @@ class AddressCardToSelect extends StatelessWidget {
         child: Ink(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: userDetailProvider.defaultUserDetail!.id == detail.id
+              ? const Color(0xffDFF5EF) //0xffD3F2E9
+              : Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: userDetailProvider.defaultUserDetail.id == detail.id
+                color: userDetailProvider.defaultUserDetail!.id == detail.id
                     ? secondaryColor
                     : secondaryTextColor.withOpacity(0.8)
             ),
-            boxShadow: [
-              userDetailProvider.defaultUserDetail.id == detail.id
-                ? BoxShadow(
-                    color: fourthColor.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                  )
-                : const BoxShadow()
-            ]
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

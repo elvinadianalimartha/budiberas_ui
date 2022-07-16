@@ -25,6 +25,7 @@ class DirectToAuthDialog extends StatelessWidget {
               const SizedBox(height: 10,),
               Text(
                 'Ups! Kami belum mengenali Anda',
+                textAlign: TextAlign.center,
                 style: primaryTextStyle.copyWith(
                   fontWeight: semiBold,
                 ),
