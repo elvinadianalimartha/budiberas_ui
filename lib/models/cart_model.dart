@@ -19,13 +19,13 @@ class CartModel{
   CartModel.fromJson(Map<String, dynamic> json){
     id = json['id'];
     product = ProductModel.fromJson(json['product']);
-    quantity = json['quantity'];
+    quantity = int.parse(json['quantity'].toString());
     orderNotes = json['order_notes'];
     if(orderNotes == null) {
       noteIsNull = true;
     } else {
       noteIsNull = false;
     }
-    isSelected = json['is_selected'] == 1 ? true : false;
+    isSelected = int.parse(json['is_selected'].toString()) == 1 ? true : false;
   }
 }

@@ -8,7 +8,7 @@ class GalleryModel{
   GalleryModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     url = json['photo_url'];
-    productId = json['product_id'];
+    productId = int.parse(json['product_id'].toString());
   }
 
   Map<String, dynamic> toJson() {

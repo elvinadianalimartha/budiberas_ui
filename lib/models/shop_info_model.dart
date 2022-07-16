@@ -16,8 +16,8 @@ class ShopInfoModel{
     shopAddress = json['shop_address'];
     addressNotes = json['address_notes'];
     phoneNumber = json['phone_number'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = double.parse(json['latitude'].toString());
+    longitude = double.parse(json['longitude'].toString());
     openStatus = json['open_status'];
   }
 }

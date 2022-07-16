@@ -19,13 +19,13 @@ class UserDetailModel{
 
   UserDetailModel.fromJson(Map<String, dynamic> json){
     id = json['id'];
-    userId = json['user_id'];
+    userId = int.parse(json['user_id'].toString());
     addressOwner = json['address_owner'];
     address = json['address'];
     addressNotes = json['address_notes'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
+    latitude = double.parse(json['latitude'].toString());
+    longitude = double.parse(json['longitude'].toString());
     phoneNumber = json['phone_number'];
-    defaultAddress = json['default_address'];
+    defaultAddress = int.parse(json['default_address'].toString());
   }
 }
