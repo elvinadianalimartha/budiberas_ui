@@ -167,8 +167,8 @@ class _DetailProductPageState extends State<DetailProductPage> {
             ),
             color: Colors.white
           ),
-          constraints: const BoxConstraints(
-            minHeight: 230,
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height/2,
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -261,7 +261,16 @@ class _DetailProductPageState extends State<DetailProductPage> {
     Widget actionButton() {
       return Container(
         width: double.infinity,
-        color: Colors.white,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: secondaryTextColor.withOpacity(0.5),
+              blurRadius: 7.0,
+              offset: const Offset(0.0, 2.0),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Row(

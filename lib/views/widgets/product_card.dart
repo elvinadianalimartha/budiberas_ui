@@ -96,7 +96,7 @@ class ProductCard extends StatelessWidget {
               const SizedBox(height: 16,),
               Text(
                 product.category.categoryName,
-                style: secondaryTextStyle,
+                style: secondaryTextStyle.copyWith(fontSize: 12),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -105,7 +105,6 @@ class ProductCard extends StatelessWidget {
                 product.name,
                 style: primaryTextStyle.copyWith(
                   fontWeight: semiBold,
-                  fontSize: 15,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -115,7 +114,6 @@ class ProductCard extends StatelessWidget {
                 'Rp ${formatter.format(product.price)}',
                 style: priceTextStyle.copyWith(
                   fontWeight: semiBold,
-                  fontSize: 15,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
