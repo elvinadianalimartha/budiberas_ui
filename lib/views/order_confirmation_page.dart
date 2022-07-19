@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/shop_info_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
+import 'package:skripsi_budiberas_9701/views/payment_method_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/address_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/loading_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/selected_cart_card.dart';
 
 import '../models/cart_model.dart';
@@ -30,20 +32,28 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   var formatter = NumberFormat.decimalPattern('id');
   String shippingType = 'Pesan Antar';
 
+  late ShopInfoProvider shopInfoProvider;
+  late UserDetailProvider userDetailProvider;
+  late OrderConfirmationProvider orderConfirmationProvider;
+  bool isLoadingCheckout = false;
+
   @override
   void initState() {
-    getInit();
     super.initState();
+    shopInfoProvider = Provider.of<ShopInfoProvider>(context, listen: false);
+    userDetailProvider = Provider.of<UserDetailProvider>(context, listen: false);
+    orderConfirmationProvider = Provider.of<OrderConfirmationProvider>(context, listen: false);
+    getInit();
   }
 
   getInit() async {
     await Future.wait([
       //get shop lat long
-      Provider.of<ShopInfoProvider>(context, listen: false).getShopInfo(),
+      shopInfoProvider.getShopInfo(),
       //get biaya per km
-      Provider.of<ShopInfoProvider>(context, listen: false).getShippingRates(),
-      Provider.of<UserDetailProvider>(context, listen: false).getDefaultDetailUser(),
-      Provider.of<OrderConfirmationProvider>(context, listen: false).getSelectedCarts(),
+      shopInfoProvider.getShippingRates(),
+      userDetailProvider.getDefaultDetailUser(),
+      orderConfirmationProvider.getSelectedCarts(),
     ]);
   }
 
@@ -211,26 +221,26 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 ),
               ),
               subtitle: Consumer<UserDetailProvider>(
-                  builder: (context, userDetailProvider, child) {
+                  builder: (context, aaaa, child) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 6.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            userDetailProvider.defaultUserDetail.addressOwner,
+                            userDetailProvider.defaultUserDetail!.addressOwner,
                             style: primaryTextStyle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            userDetailProvider.defaultUserDetail.phoneNumber,
+                            userDetailProvider.defaultUserDetail!.phoneNumber,
                             style: greyTextStyle,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            userDetailProvider.defaultUserDetail.address,
+                            userDetailProvider.defaultUserDetail!.address,
                             style: greyTextStyle,
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
@@ -304,8 +314,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
             listNotes: [
               Text(
                 'Jarak antar: ${shopInfoProv.countDistance(
-                    destinationLat: userDetailProv.defaultUserDetail.latitude,
-                    destinationLong: userDetailProv.defaultUserDetail.longitude,
+                    destinationLat: userDetailProv.defaultUserDetail!.latitude,
+                    destinationLong: userDetailProv.defaultUserDetail!.longitude,
                 )} km',
                 style: greyTextStyle,
                 maxLines: 2,
@@ -476,6 +486,28 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       );
     }
 
+    handleCheckout() async{
+      setState(() {
+        isLoadingCheckout = true;
+      });
+
+      if(await orderConfirmationProvider.checkout(
+        totalPrice: double.parse(shopInfoProvider.countTotalBill(shippingType).toString()),
+      )) {
+        String transToken = orderConfirmationProvider.redirectLink;
+        Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentMethodPage(
+            transactionToken: transToken,
+            shippingRate: double.parse(shopInfoProvider.countShippingPrice().toString()),
+            shippingType: shippingType,
+            userDetailId: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.id : null,
+        )));
+      }
+
+      setState(() {
+        isLoadingCheckout = false;
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -491,7 +523,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       ),
       body: Consumer2<UserDetailProvider, OrderConfirmationProvider>(
         builder: (context, userDetailProv, orderConfirmProv, child) {
-          if(userDetailProv.loading || orderConfirmProv.loadingGetData) {
+          if(userDetailProv.defaultUserDetail == null || orderConfirmProv.loadingGetData) {
             return loadingProgress();
           } else {
             return ListView(
@@ -516,14 +548,16 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(20.0),
-        child: Container(
+        child: SizedBox(
           height: 50,
-          child: BtnWithIcon(
-            text: 'Bayar',
-            onClick: () {
-
-            },
-          ),
+          child: isLoadingCheckout
+            ? const LoadingButton()
+            : BtnWithIcon(
+              text: 'Bayar',
+              onClick: () {
+                handleCheckout();
+              },
+            ),
         ),
       ),
     );

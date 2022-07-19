@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:skripsi_budiberas_9701/services/cart_service.dart';
+import 'package:skripsi_budiberas_9701/services/checkout_service.dart';
 
 import '../models/cart_model.dart';
 import '../models/user_model.dart';
@@ -41,5 +42,64 @@ class OrderConfirmationProvider with ChangeNotifier{
       total += (item.quantity * item.product.price);
     }
     return total;
+  }
+
+  String _redirectLink = '';
+
+  String get redirectLink => _redirectLink;
+
+  set redirectLink(String value) {
+    _redirectLink = value;
+    notifyListeners();
+  }
+
+  bool loadingCheckout = false;
+
+  Future<bool> checkout({
+    required double totalPrice,
+  }) async{
+    try {
+      _redirectLink = '';
+      String link = await CheckoutService().checkout(
+          token: _user.token!,
+          totalPrice: totalPrice);
+      _redirectLink = link;
+      if(_redirectLink != '') {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<bool> saveTransaction({
+    int? userDetailId,
+    required double shippingRate,
+    required String shippingType,
+    required double totalPrice,
+    required String invoiceCode,
+    required String paymentMethod,
+}) async{
+    try {
+      if(await CheckoutService().saveTransaction(
+          token: _user.token!,
+          userDetailId: userDetailId,
+          shippingRate: shippingRate,
+          shippingType: shippingType,
+          totalPrice: totalPrice,
+          invoiceCode: invoiceCode,
+          paymentMethod: paymentMethod,
+      )) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      return false;
+    }
   }
 }
