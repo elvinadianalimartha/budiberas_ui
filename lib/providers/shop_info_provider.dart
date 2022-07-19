@@ -5,11 +5,11 @@ import 'package:skripsi_budiberas_9701/models/shop_info_model.dart';
 import 'package:skripsi_budiberas_9701/services/shop_info_service.dart';
 
 class ShopInfoProvider with ChangeNotifier{
-  late ShopInfoModel _shopInfo;
+  ShopInfoModel? _shopInfo;
 
-  ShopInfoModel get shopInfo => _shopInfo;
+  ShopInfoModel? get shopInfo => _shopInfo;
 
-  set shopInfo(ShopInfoModel value) {
+  set shopInfo(ShopInfoModel? value) {
     _shopInfo = value;
     notifyListeners();
   }
@@ -60,7 +60,7 @@ class ShopInfoProvider with ChangeNotifier{
     required double destinationLong,
   }) {
     double distanceInMeters = Geolocator.distanceBetween(
-        _shopInfo.latitude, _shopInfo.longitude,
+        _shopInfo!.latitude, _shopInfo!.longitude,
         destinationLat, destinationLong
     );
     distanceInKm = distanceInMeters/1000;

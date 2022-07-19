@@ -5,11 +5,11 @@ import 'package:skripsi_budiberas_9701/services/user_detail_service.dart';
 
 
 class UserDetailProvider with ChangeNotifier{
-  late UserDetailModel _defaultUserDetail;
+  UserDetailModel? _defaultUserDetail;
 
-  UserDetailModel get defaultUserDetail => _defaultUserDetail;
+  UserDetailModel? get defaultUserDetail => _defaultUserDetail;
 
-  set defaultUserDetail(UserDetailModel value) {
+  set defaultUserDetail(UserDetailModel? value) {
     _defaultUserDetail = value;
     notifyListeners();
   }
