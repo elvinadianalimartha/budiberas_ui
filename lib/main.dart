@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/address_management_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/places_provider.dart';
@@ -11,6 +12,7 @@ import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dar
 import 'package:skripsi_budiberas_9701/providers/page_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/shop_info_provider.dart';
+import 'package:skripsi_budiberas_9701/providers/transaction_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
 import 'package:skripsi_budiberas_9701/splash_page.dart';
 import 'package:skripsi_budiberas_9701/views/form/add_address.dart';
@@ -47,6 +49,11 @@ class MyApp extends StatelessWidget {
           update: (_, authProvider, orderConfirmProvider) => orderConfirmProvider!
             ..user = authProvider.user!
         ),
+        ChangeNotifierProxyProvider<AuthProvider, TransactionProvider>(
+            create: (_) => TransactionProvider(),
+            update: (_, authProvider, transProvider) => transProvider!
+              ..user = authProvider.user!
+        ),
         ChangeNotifierProvider(create: (context) => MessageProvider()),
         ChangeNotifierProxyProvider<OrderConfirmationProvider, ShopInfoProvider>(
           create: (_) => ShopInfoProvider(),
@@ -62,6 +69,15 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', ''), // English, no country code
+          Locale('id', ''), // Indonesia, no country code
+        ],
         routes: {
           '/': (context) => const SplashPage(),
           '/home': (context) => MainPage(),
