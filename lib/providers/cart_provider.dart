@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
+import 'package:pusher_client/pusher_client.dart';
 import 'package:skripsi_budiberas_9701/services/cart_service.dart';
 
 import '../models/cart_model.dart';
@@ -33,6 +36,78 @@ class CartProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  Future<void> pusherStock() async {
+    PusherClient pusher;
+    Channel channel;
+    pusher = PusherClient('2243680746c2e59ee156', PusherOptions(cluster: 'ap1'));
+
+    channel = pusher.subscribe('stock-updated');
+
+    channel.bind('App\\Events\\StockUpdated', (event) {
+      print(event!.data);
+      final data = jsonDecode(event.data!);
+
+      var productIdToUpdate = int.parse(data['productId'].toString());
+
+      _carts.where(
+            (cart) => cart.product.id == productIdToUpdate
+      ).first.product.stock = data['stockQty'];
+      notifyListeners();
+
+      //kalau melebihi jml stok, maka diupdate jadi sama dgn stok saat ini
+      if(data['stockQty'] > 0) {
+        if(_carts.where(
+                (cart) => cart.product.id == productIdToUpdate
+        ).first.quantity > data['stockQty']) {
+          _carts.where(
+                  (cart) => cart.product.id == productIdToUpdate
+          ).first.quantity = data['stockQty'];
+          notifyListeners();
+        }
+      }
+    });
+  }
+
+  Future<void> pusherProductStatus() async {
+    PusherClient pusher;
+    Channel channel;
+    pusher = PusherClient('2243680746c2e59ee156', PusherOptions(cluster: 'ap1'));
+
+    channel = pusher.subscribe('product-status');
+
+    channel.bind('App\\Events\\ProductStatusUpdated', (event) {
+      print(event!.data);
+      final data = jsonDecode(event.data!);
+
+      var productIdToUpdate = int.parse(data['productId'].toString());
+
+      //update data status sesuai dgn id yg dituju
+      _carts.where(
+          (e) => e.product.id == productIdToUpdate)
+      .first.product.stockStatus = data['productStatus'];
+
+      //Jika status produk tdk aktif, akan dihapus dari cartSelected/cart yg terpilih
+      //Sebaliknya, jika aktif kembali dan isSelected true, akan kembali ke cartSelected spy bisa otomatis menyesuaikan perhitungan totalnya
+      CartModel _updatedCart = _carts.where(
+          (e) => e.product.id == productIdToUpdate
+      ).first;
+
+      if(_updatedCart.isSelected == true) {
+        if(data['productStatus'].toString().toLowerCase() == 'tidak aktif') {
+          _cartSelected.removeWhere(
+              (e) => e.product.id == productIdToUpdate
+          );
+        } else if(data['productStatus'].toString().toLowerCase() == 'aktif') {
+          //jika blm ada di list selected cart, maka masukkan
+          if(!cartIdExistInSelectedCart(_updatedCart.id)) {
+            _cartSelected.add(_updatedCart);
+          }
+        }
+      }
+      notifyListeners();
+    });
+  }
+
   Future<void> getCartsByUser(String token) async{
     loadingGetCart = true;
     try {
@@ -46,12 +121,13 @@ class CartProvider with ChangeNotifier{
   }
 
   setCheckAllValue() {
-    _checkAll = _carts.every((item) => item.isSelected);
+    List<CartModel> _activeCarts = _carts.where((cart) => cart.product.stockStatus.toLowerCase() == 'aktif').toList();
+    _checkAll = _activeCarts.every((item) => item.isSelected);
     notifyListeners();
   }
 
   initSelectedCartData() {
-    _cartSelected = _carts.where((cart) => cart.isSelected == true).toList();
+    _cartSelected = _carts.where((cart) => cart.isSelected == true && cart.product.stockStatus.toLowerCase() == 'aktif').toList();
 
     //init check all value
     setCheckAllValue();
@@ -80,7 +156,7 @@ class CartProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  productExistInSelectedCart(int idCart) {
+  cartIdExistInSelectedCart(int idCart) {
     bool existVal = _cartSelected.any((cart) => cart.id == idCart);
     return existVal;
   }
@@ -139,7 +215,7 @@ class CartProvider with ChangeNotifier{
     int index = _carts.indexWhere((cart) => cart.id == id);
     _carts[index].quantity++;
 
-    if(productExistInSelectedCart(id)) {
+    if(cartIdExistInSelectedCart(id)) {
       int idSelected = _cartSelected.indexWhere((cart) => cart.id == id);
       _cartSelected[idSelected].quantity = _carts[index].quantity;
     }
@@ -150,7 +226,7 @@ class CartProvider with ChangeNotifier{
     int index = _carts.indexWhere((cart) => cart.id == id);
     _carts[index].quantity--;
 
-    if(productExistInSelectedCart(id)) {
+    if(cartIdExistInSelectedCart(id)) {
       int idSelected = _cartSelected.indexWhere((cart) => cart.id == id);
       _cartSelected[idSelected].quantity = _carts[index].quantity;
     }

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/cart_card.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/cart_card_inactive.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
@@ -30,6 +31,7 @@ class _CartPageState extends State<CartPage> {
     userData = Provider.of<AuthProvider>(context, listen: false).user;
     await Provider.of<CartProvider>(context, listen: false).getCartsByUser(userData!.token!);
     Provider.of<CartProvider>(context, listen: false).initSelectedCartData();
+    await Provider.of<CartProvider>(context, listen: false).pusherProductStatus();
   }
 
   @override
@@ -119,13 +121,13 @@ class _CartPageState extends State<CartPage> {
       updateAllCheckedVal(value, cartProvider);
 
       cartProvider.checkAll = value;
-      List<CartModel> carts = cartProvider.carts;
+      List<CartModel> carts = cartProvider.carts.where((e) => e.product.stockStatus.toLowerCase() == 'aktif').toList();
 
       for (var cart in carts) {
         cart.isSelected = value; //set nilai semua isi cart jadi = value
 
         if(value == true) {
-          if(!cartProvider.productExistInSelectedCart(cart.id)) {
+          if(!cartProvider.cartIdExistInSelectedCart(cart.id)) {
             cartProvider.selectCart(cart);
           }
         } else {
@@ -149,18 +151,54 @@ class _CartPageState extends State<CartPage> {
     }
 
     Widget content(CartProvider cartProvider) {
+      List<CartModel> activeProductCarts = cartProvider.carts.where((e) => e.product.stockStatus.toLowerCase() == 'aktif').toList();
+      List<CartModel> inActiveProductCarts = cartProvider.carts.where((e) => e.product.stockStatus.toLowerCase() == 'tidak aktif').toList();
       return Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           buildGroupCheckbox(cartProvider),
           const Divider(thickness: 3,),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(top: 10),
-              itemCount: cartProvider.carts.length,
-              itemBuilder: (context, index) {
-                return CartCard(cart: cartProvider.carts[index]);
-              }
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.only(top: 10),
+                    itemCount: activeProductCarts.length,
+                    itemBuilder: (context, index) {
+                      return CartCard(cart: activeProductCarts[index]);
+                    }
+                  ),
+                  inActiveProductCarts.isNotEmpty
+                      ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                        child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Produk sedang tidak aktif',
+                            style: greyTextStyle.copyWith(fontWeight: semiBold),
+                          ),
+                          const SizedBox(height: 8,),
+                          ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: inActiveProductCarts.length,
+                              itemBuilder: (context, index) {
+                                return InactiveCartCard(cart: inActiveProductCarts[index]); //card diganti abu2 semua, gak ada tombol
+                              }
+                          ),
+                          const SizedBox(height: 8,),
+                    ],
+                  ),
+                      )
+                  : const SizedBox()
+                ],
+              ),
             ),
           ),
         ],

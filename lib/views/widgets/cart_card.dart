@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
@@ -24,15 +25,22 @@ class CartCard extends StatefulWidget {
 }
 
 class _CartCardState extends State<CartCard> {
-  bool _isDisabled = false;
+  bool _isDisabledDecrement = false;
+  bool _isDisabledIncrement = false;
 
   @override
   void initState() {
     super.initState();
+    getInitPusherStock();
+  }
+
+  getInitPusherStock() async{
+    await Provider.of<CartProvider>(context, listen: false).pusherStock();
   }
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController editQtyManualCtrl = TextEditingController(text: '${widget.cart.quantity}',);
     CartProvider cartProvider = Provider.of<CartProvider>(context);
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
 
@@ -40,13 +48,25 @@ class _CartCardState extends State<CartCard> {
 
     var formatter = NumberFormat.decimalPattern('id');
 
+    //Qty di cart min. 1
     if(widget.cart.quantity <= 1) {
       setState(() {
-        _isDisabled = true;
+        _isDisabledDecrement = true;
       });
     } else {
       setState(() {
-        _isDisabled = false;
+        _isDisabledDecrement = false;
+      });
+    }
+
+    //Batas max qty adalah stok produk saat ini
+    if(widget.cart.quantity >= widget.cart.product.stock) {
+      setState(() {
+        _isDisabledIncrement = true;
+      });
+    } else {
+      setState(() {
+        _isDisabledIncrement = false;
       });
     }
 
@@ -77,27 +97,57 @@ class _CartCardState extends State<CartCard> {
               constraints: const BoxConstraints(),
               icon: Icon(
                   Icons.remove_circle,
-                  color: _isDisabled
+                  color: _isDisabledDecrement
                       ? secondaryTextColor
                       : secondaryColor
               ),
               onPressed: () {
-                _isDisabled
+                _isDisabledDecrement
                     ? (){}
                     : [cartProvider.decrementQty(widget.cart.id), handleUpdateQty()];
               },
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Text('${widget.cart.quantity}'),
+            Flexible(
+              child: TextFormField(
+                decoration: const InputDecoration(
+                  constraints: BoxConstraints(
+                    maxWidth: 65,
+                  ),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                    isDense: true,
+                ),// and add this line
+                keyboardType: TextInputType.number,
+                controller: editQtyManualCtrl,
+                textAlign: TextAlign.center,
+                onFieldSubmitted: (value) {
+                  setState(() {
+                    widget.cart.quantity = int.parse(value);
+                  });
+                  //bikin di cartProvider fungsi utk hitung totalnya
+                  handleUpdateQty();
+                },
+                onChanged: (val) { //ini masih blm betul, gak bisa dihapus
+                  if(int.parse(val) >= widget.cart.product.stock) {
+                    editQtyManualCtrl.text = widget.cart.product.stock.toString();
+                  }
+                },
+              ),
             ),
             IconButton(
               padding: const EdgeInsets.all(8),
               constraints: const BoxConstraints(),
-              onPressed: () { //TODO: tambahkan max qty (sesuai stok produk)
-                [cartProvider.incrementQty(widget.cart.id), handleUpdateQty()];
+              onPressed: () {//TODO: max qty (sesuai stok produk)
+                _isDisabledIncrement
+                  ? () {}
+                  : [cartProvider.incrementQty(widget.cart.id), handleUpdateQty()];
               },
-              icon: Icon(Icons.add_circle, color: secondaryColor,),
+              icon: Icon(
+                Icons.add_circle,
+                color: _isDisabledIncrement
+                  ? secondaryTextColor
+                  : secondaryColor
+              ),
             ),
           ],
         ),
