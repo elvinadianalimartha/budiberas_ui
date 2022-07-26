@@ -26,7 +26,15 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     categoryProvider = Provider.of<CategoryProvider>(context, listen: false);
     productProvider = Provider.of<ProductProvider>(context, listen: false);
+    getInitPusher();
     super.initState();
+  }
+
+  getInitPusher() async {
+    await Future.wait([
+      productProvider.getProducts(),
+      productProvider.pusherProductStatus()
+    ]);
   }
 
   @override
@@ -296,13 +304,54 @@ class _HomePageState extends State<HomePage> {
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
-            children: data.products.map(
+            children: data.products.where((e) => e.stockStatus.toLowerCase() == 'aktif').map(
                 (product) => ProductCard(product: product)
             ).toList(),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
           );
         }
+      );
+    }
+
+    Widget nonActiveProduct() {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(thickness: 1,),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+            child: Text(
+              'Produk Tidak Aktif / Stok Habis',
+              style: greyTextStyle.copyWith(fontWeight: semiBold),
+            ),
+          ),
+          Consumer<ProductProvider>(
+            builder: (context, data, child) {
+              return GridView(
+                padding: const EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  bottom: 20,
+                ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.69,
+                  crossAxisSpacing: 20,
+                  mainAxisSpacing: 20,
+                ),
+                children: data.products.where((e) => e.stockStatus.toLowerCase() == 'tidak aktif').map(
+                        (product) => ProductCard(product: product)
+                ).toList(),
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+              );
+            }
+          ),
+        ],
       );
     }
 
@@ -369,7 +418,18 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 20,),
                           category(),
                           productTitle(),
-                          productProvider.products.isEmpty ? productNotFound() : product(),
+                          productProvider.products.isEmpty
+                            ? productNotFound()
+                            : Column(
+                                children: [
+                                  productProvider.products.any(
+                                          (e) => e.stockStatus.toLowerCase() == 'aktif'
+                                  ) ? product() : const SizedBox(),
+                                  productProvider.products.any(
+                                          (e) => e.stockStatus.toLowerCase() == 'tidak aktif'
+                                  ) ? nonActiveProduct() : const SizedBox(),
+                                ],
+                            ),
                         ],
                       )
                     )

@@ -119,7 +119,9 @@ class ProductCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const Spacer(),
-              Consumer<AuthProvider>(
+              product.stockStatus.toLowerCase() == 'tidak aktif'
+              ? const SizedBox()
+              : Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {
                   return InkWell(
                     splashColor: btnColor.withOpacity(0.2),

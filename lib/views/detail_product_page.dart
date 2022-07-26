@@ -301,7 +301,28 @@ class _DetailProductPageState extends State<DetailProductPage> {
                 ),
                 const SizedBox(width: 16,),
                 Expanded(
-                  child: Consumer<AuthProvider>(
+                  child: widget.product.stockStatus.toLowerCase() == 'tidak aktif'
+                  ? TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: secondaryTextColor.withOpacity(0.25),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 24
+                        ),
+                      ),
+                      onPressed: () {  },
+                      child: Text(
+                        'Produk Tidak Aktif',
+                        style: secondaryTextStyle.copyWith(
+                          fontSize: 16,
+                          fontWeight: medium,
+                        ),
+                      )
+                  )
+                  : Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
                       return DoneButton(
                         onClick: () {
