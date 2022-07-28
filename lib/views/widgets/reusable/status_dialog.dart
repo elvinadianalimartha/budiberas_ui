@@ -3,12 +3,18 @@ import 'package:flutter/material.dart';
 
 import '../../../theme.dart';
 
-class SucceedDialogWidget extends StatelessWidget {
+class StatusDialogWidget extends StatelessWidget {
   final String text;
+  final Color backgroundColorIcon;
+  final IconData icon;
+  final Color colorIcon;
 
-  const SucceedDialogWidget({
+  const StatusDialogWidget({
     Key? key,
     required this.text,
+    required this.backgroundColorIcon,
+    required this.icon,
+    required this.colorIcon,
   }) : super(key: key);
 
   @override
@@ -25,11 +31,11 @@ class SucceedDialogWidget extends StatelessWidget {
           children: [
             Container(
                 decoration: BoxDecoration(
-                  color: fourthColor.withOpacity(0.5),
+                  color: backgroundColorIcon.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(8),
-                child: Icon(Icons.check_circle_rounded, size: 50, color: thirdColor,)
+                child: Icon(icon, size: 50, color: colorIcon,)
             ),
             const SizedBox(height: 12,),
             Text(
