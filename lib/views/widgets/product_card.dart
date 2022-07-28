@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
-import 'package:skripsi_budiberas_9701/views/widgets/reusable/succeed_dialog.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/status_dialog.dart';
 
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
@@ -32,7 +32,12 @@ class ProductCard extends StatelessWidget {
           Future.delayed(const Duration(seconds: 1), () {
             Navigator.pop(context);
           });
-          return SucceedDialogWidget(text: '${product.name} berhasil ditambahkan ke keranjang',);
+          return StatusDialogWidget(
+            text: '${product.name} berhasil ditambahkan ke keranjang',
+            backgroundColorIcon: fourthColor,
+            icon: Icons.check_circle_rounded,
+            colorIcon: thirdColor,
+          );
         }
       );
     }

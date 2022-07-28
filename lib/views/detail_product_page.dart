@@ -9,7 +9,7 @@ import 'package:skripsi_budiberas_9701/providers/product_provider.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/direct_to_auth_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
-import 'package:skripsi_budiberas_9701/views/widgets/reusable/succeed_dialog.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/status_dialog.dart';
 
 import '../models/product_model.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
@@ -229,7 +229,12 @@ class _DetailProductPageState extends State<DetailProductPage> {
             Future.delayed(const Duration(seconds: 1), () {
               Navigator.pop(context);
             });
-            return SucceedDialogWidget(text: '${widget.product.name} berhasil ditambahkan ke keranjang',);
+            return StatusDialogWidget(
+              text: '${widget.product.name} berhasil ditambahkan ke keranjang',
+              backgroundColorIcon: fourthColor,
+              icon: Icons.check_circle_rounded,
+              colorIcon: thirdColor,
+            );
           }
       );
     }

@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
               decoration: InputDecoration(
                 isCollapsed: true,
                 isDense: true,
-                contentPadding: const EdgeInsets.all(12),
+                contentPadding: const EdgeInsets.all(10),
                 fillColor: Colors.white,
                 filled: true,
                 border: OutlineInputBorder(
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                   borderSide: BorderSide.none,
                 ),
                 hintText: 'Cari nama produk',
-                hintStyle: secondaryTextStyle,
+                hintStyle: secondaryTextStyle.copyWith(fontSize: 14),
                 prefixIcon: Icon(Icons.search, color: secondaryTextColor, size: 20,),
                 suffixIcon: _statusFilled
                     ? InkWell(
