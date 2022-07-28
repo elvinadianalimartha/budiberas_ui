@@ -210,6 +210,17 @@ class CartProvider with ChangeNotifier{
     }
   }
 
+  manualEditQty(int id, int newQty) {
+    int index = _carts.indexWhere((cart) => cart.id == id);
+    _carts[index].quantity = newQty;
+
+    if(cartIdExistInSelectedCart(id)) {
+      int idSelected = _cartSelected.indexWhere((cart) => cart.id == id);
+      _cartSelected[idSelected].quantity = _carts[index].quantity;
+    }
+    notifyListeners();
+  }
+
   //update quantity on cart (include increment, decrement, edit manual)
   incrementQty(int id) {
     int index = _carts.indexWhere((cart) => cart.id == id);

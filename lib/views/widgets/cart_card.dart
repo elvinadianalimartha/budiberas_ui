@@ -6,6 +6,7 @@ import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/are_you_sure_dialog.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/numerical_range_fomatter.dart';
 
 import '../../models/cart_model.dart';
 import '../../providers/cart_provider.dart';
@@ -116,20 +117,26 @@ class _CartCardState extends State<CartCard> {
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 10),
                     isDense: true,
-                ),// and add this line
+                ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [NumericalRangeFormatter(max: widget.cart.product.stock)],
                 controller: editQtyManualCtrl,
                 textAlign: TextAlign.center,
                 onFieldSubmitted: (value) {
-                  setState(() {
-                    widget.cart.quantity = int.parse(value);
-                  });
-                  //bikin di cartProvider fungsi utk hitung totalnya
-                  handleUpdateQty();
-                },
-                onChanged: (val) { //ini masih blm betul, gak bisa dihapus
-                  if(int.parse(val) >= widget.cart.product.stock) {
-                    editQtyManualCtrl.text = widget.cart.product.stock.toString();
+                  if(value != '') {
+                    setState(() {
+                      widget.cart.quantity = int.parse(value);
+                    });
+
+                    //fungsi utk hitung total harga scr realtime
+                    cartProvider.manualEditQty(widget.cart.id, int.parse(value));
+
+                    //update qty yg baru ke server
+                    handleUpdateQty();
+                  } else {
+                    setState(() {
+                      editQtyManualCtrl.text = widget.cart.quantity.toString();
+                    });
                   }
                 },
               ),
@@ -137,7 +144,7 @@ class _CartCardState extends State<CartCard> {
             IconButton(
               padding: const EdgeInsets.all(8),
               constraints: const BoxConstraints(),
-              onPressed: () {//TODO: max qty (sesuai stok produk)
+              onPressed: () {
                 _isDisabledIncrement
                   ? () {}
                   : [cartProvider.incrementQty(widget.cart.id), handleUpdateQty()];
