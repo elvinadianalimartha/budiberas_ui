@@ -44,12 +44,12 @@ class OrderConfirmationProvider with ChangeNotifier{
     return total;
   }
 
-  String _redirectLink = '';
+  String _snapToken = '';
 
-  String get redirectLink => _redirectLink;
+  String get snapToken => _snapToken;
 
-  set redirectLink(String value) {
-    _redirectLink = value;
+  set snapToken(String value) {
+    _snapToken = value;
     notifyListeners();
   }
 
@@ -57,14 +57,27 @@ class OrderConfirmationProvider with ChangeNotifier{
 
   Future<bool> checkout({
     required double totalPrice,
+    String? orderReceiver,
+    String? phoneNumber,
+    String? address,
+    String? detailAddress,
+    required String shippingType,
+    required double shippingRate,
   }) async{
     try {
-      _redirectLink = '';
+      _snapToken = '';
       String link = await CheckoutService().checkout(
-          token: _user.token!,
-          totalPrice: totalPrice);
-      _redirectLink = link;
-      if(_redirectLink != '') {
+        token: _user.token!,
+        totalPrice: totalPrice,
+        orderReceiver: orderReceiver,
+        phoneNumber: phoneNumber,
+        address: address,
+        detailAddress: detailAddress,
+        shippingType: shippingType,
+        shippingRate: shippingRate,
+      ); //checkout akan mereturn snap token -> ditampung di var link
+      _snapToken = link;
+      if(_snapToken != '') {
         return true;
       } else {
         return false;
@@ -75,23 +88,21 @@ class OrderConfirmationProvider with ChangeNotifier{
     }
   }
 
-  Future<bool> saveTransaction({
-    int? userDetailId,
-    required double shippingRate,
-    required String shippingType,
-    required double totalPrice,
-    required String invoiceCode,
+  Future<bool> savePaymentInfo({
+    required String midtransOrderId,
     required String paymentMethod,
+    String? bankName,
+    String? vaNumber,
+    required String transactionStatus,
 }) async{
     try {
-      if(await CheckoutService().saveTransaction(
+      if(await CheckoutService().savePaymentInfo(
           token: _user.token!,
-          userDetailId: userDetailId,
-          shippingRate: shippingRate,
-          shippingType: shippingType,
-          totalPrice: totalPrice,
-          invoiceCode: invoiceCode,
+          midtransOrderId: midtransOrderId,
           paymentMethod: paymentMethod,
+          bankName: bankName,
+          vaNumber: vaNumber,
+          transactionStatus: transactionStatus,
       )) {
         return true;
       } else {

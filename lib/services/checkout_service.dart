@@ -8,6 +8,12 @@ class CheckoutService{
 
   Future<String> checkout({
     required String token,
+    String? orderReceiver,
+    String? phoneNumber,
+    String? address,
+    String? detailAddress,
+    required String shippingType,
+    required double shippingRate,
     required double totalPrice,
   }) async {
     var url = '$baseUrl/checkout';
@@ -16,6 +22,12 @@ class CheckoutService{
       'Authorization': token,
     };
     var body = jsonEncode({
+      'order_receiver': orderReceiver,
+      'phone_number': phoneNumber,
+      'address': address,
+      'detail_address': detailAddress,
+      'shipping_type': shippingType,
+      'shipping_rate': shippingRate,
       'total_price': totalPrice,
     });
 
@@ -30,27 +42,25 @@ class CheckoutService{
     return response.body;
   }
 
-  Future<bool> saveTransaction({
+  Future<bool> savePaymentInfo({
     required String token,
-    int? userDetailId,
-    required double shippingRate,
-    required String shippingType,
-    required String invoiceCode,
-    required double totalPrice,
+    required String midtransOrderId,
     required String paymentMethod,
+    String? bankName,
+    String? vaNumber,
+    required String transactionStatus,
   }) async {
-    var url = '$baseUrl/saveTransaction';
+    var url = '$baseUrl/savePaymentInfo';
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': token,
     };
     var body = jsonEncode({
-      'user_detail_id': userDetailId,
-      'shipping_rate': shippingRate,
-      'shipping_type': shippingType,
-      'invoice_code': invoiceCode,
-      'total_price': totalPrice,
+      'midtrans_order_id': midtransOrderId,
       'payment_method': paymentMethod,
+      'bank_name': bankName,
+      'va_number': vaNumber,
+      'transaction_status': transactionStatus,
     });
 
     var response = await http.post(

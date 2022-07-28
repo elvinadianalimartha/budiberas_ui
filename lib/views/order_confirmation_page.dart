@@ -493,13 +493,16 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
       if(await orderConfirmationProvider.checkout(
         totalPrice: double.parse(shopInfoProvider.countTotalBill(shippingType).toString()),
+        shippingRate: shippingType == 'Pesan Antar' ? double.parse(shopInfoProvider.countShippingPrice().toString()) : 0,
+        shippingType: shippingType,
+        orderReceiver: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.addressOwner : null,
+        phoneNumber: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.phoneNumber : null,
+        address: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.address : null,
+        detailAddress: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.addressNotes : null,
       )) {
-        String transToken = orderConfirmationProvider.redirectLink;
+        String transToken = orderConfirmationProvider.snapToken;
         Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentMethodPage(
             transactionToken: transToken,
-            shippingRate: double.parse(shopInfoProvider.countShippingPrice().toString()),
-            shippingType: shippingType,
-            userDetailId: shippingType == 'Pesan Antar' ? userDetailProvider.defaultUserDetail!.id : null,
         )));
       }
 
@@ -523,7 +526,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       ),
       body: Consumer2<UserDetailProvider, OrderConfirmationProvider>(
         builder: (context, userDetailProv, orderConfirmProv, child) {
-          if(userDetailProv.defaultUserDetail == null || orderConfirmProv.loadingGetData) {
+          if(userDetailProv.defaultUserDetail == null || shopInfoProvider.shopInfo == null || orderConfirmProv.loadingGetData) {
             return loadingProgress();
           } else {
             return ListView(

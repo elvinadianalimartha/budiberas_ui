@@ -14,16 +14,10 @@ import '../theme.dart';
 
 class PaymentMethodPage extends StatefulWidget {
   final String transactionToken;
-  final String shippingType;
-  final double shippingRate;
-  final int? userDetailId;
 
   const PaymentMethodPage({
     Key? key,
     required this.transactionToken,
-    required this.shippingType,
-    required this.shippingRate,
-    this.userDetailId,
   }) : super(key: key);
 
   @override
@@ -44,14 +38,12 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
   @override
   Widget build(BuildContext context) {
     saveToTransaction(MidtransModel midtrans) async{
-      if(await context.read<OrderConfirmationProvider>().saveTransaction(
-          userDetailId: widget.userDetailId,
-          shippingRate: widget.shippingRate,
-          shippingType: widget.shippingType,
-          invoiceCode: midtrans.invoiceCode,
-          totalPrice: midtrans.totalPrice,
+      if(await context.read<OrderConfirmationProvider>().savePaymentInfo(
+          midtransOrderId: midtrans.orderId,
           paymentMethod: midtrans.paymentMethod,
-          //transactionTime: midtrans.transactionTime)
+          bankName: midtrans.bankName,
+          vaNumber: midtrans.vaNumber,
+          transactionStatus: midtrans.transactionStatus,
       )) {
         //get transaksi & arahin ke transaksi
         context.read<PageProvider>().currentIndex = 3;
@@ -68,38 +60,46 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
       }
     }
 
-    return Scaffold(
-      appBar: customAppBar(text: 'Pilih Metode Pembayaran'),
-      body: WebView(
-        //initialUrl: widget.transactionToken,
-        javascriptMode: JavascriptMode.unrestricted,
-        onWebViewCreated: (_controller) {
-          webViewController = _controller;
-          loadHtmlFromAssets();
-        },
-        gestureNavigationEnabled: true,
-        javascriptChannels: <JavascriptChannel>{
-          JavascriptChannel(
-            name: 'PayResponse',
-            onMessageReceived: (JavascriptMessage receiver) {
-              print('==========>>>>>>>>>>>>>> BEGIN');
-              if (receiver.message != null || receiver.message != 'undefined') {
-                if (receiver.message == 'close') {
-                  Navigator.pop(context);
-                } else {
-                  //resultnya didecode
-                  var data = jsonDecode(receiver.message);
-                  MidtransModel midtrans = MidtransModel.fromJson(data);
-                  print(midtrans.transactionTime);
-                  
-                  //simpan transaksinya ke dalam database
-                  saveToTransaction(midtrans);
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.of(context)
+          ..pop()
+          ..pop();
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: customAppBar(text: 'Pilih Metode Pembayaran'),
+        body: WebView(
+          //initialUrl: widget.transactionToken,
+          javascriptMode: JavascriptMode.unrestricted,
+          onWebViewCreated: (_controller) {
+            webViewController = _controller;
+            loadHtmlFromAssets();
+          },
+          gestureNavigationEnabled: true,
+          javascriptChannels: <JavascriptChannel>{
+            JavascriptChannel(
+              name: 'PayResponse',
+              onMessageReceived: (JavascriptMessage receiver) {
+                print(receiver.message);
+                print('==========>>>>>>>>>>>>>> BEGIN');
+                if (receiver.message != null || receiver.message != 'undefined') {
+                  if (receiver.message == 'close') {
+                    Navigator.pop(context);
+                  } else {
+                    //resultnya didecode
+                    var data = jsonDecode(receiver.message);
+                    MidtransModel midtrans = MidtransModel.fromJson(data);
+
+                    //simpan transaksinya ke dalam database
+                    saveToTransaction(midtrans);
+                  }
                 }
-              }
-              print('==========>>>>>>>>>>>>>> END');
-            },
-          ),
-        },
+                print('==========>>>>>>>>>>>>>> END');
+              },
+            ),
+          },
+        ),
       ),
     );
   }
