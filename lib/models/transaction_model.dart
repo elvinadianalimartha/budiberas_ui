@@ -2,9 +2,13 @@ import 'package:skripsi_budiberas_9701/models/gallery_model.dart';
 
 class TransactionModel {
   late int id, userId;
-  int? userDetailId;
+  String? orderReceiver;
+  String? phoneNumber;
+  String? address;
+  String? detailAddress;
   late double shippingRate, totalPrice;
   late String invoiceCode, shippingType, transactionStatus, paymentMethod;
+  String? bankName, vaNumber;
   String? pickupCode;
   late DateTime checkoutDate;
   late String checkoutTime;
@@ -14,13 +18,18 @@ class TransactionModel {
   TransactionModel({
     required this.id,
     required this.userId,
-    this.userDetailId,
+    this.orderReceiver,
+    this.phoneNumber,
+    this.address,
+    this.detailAddress,
     required this.shippingRate,
     required this.totalPrice,
     required this.invoiceCode,
     required this.shippingType,
     required this.transactionStatus,
     required this.paymentMethod,
+    this.bankName,
+    this.vaNumber,
     this.pickupCode,
     required this.checkoutDate,
     required this.checkoutTime
@@ -30,11 +39,10 @@ class TransactionModel {
     id = int.parse(json['id'].toString());
     userId = int.parse(json['user_id'].toString());
 
-    if(json['user_detail_id'] != null) {
-      userDetailId = int.parse(json['user_detail_id'].toString());
-    } else {
-      userDetailId = null;
-    }
+    orderReceiver = json['order_receiver'];
+    phoneNumber = json['phone_number'];
+    address = json['address'];
+    detailAddress = json['detail_address'];
 
     shippingRate = double.parse(json['shipping_rate'].toString());
     totalPrice = double.parse(json['total_price'].toString());
@@ -42,14 +50,14 @@ class TransactionModel {
     shippingType = json['shipping_type'];
     transactionStatus = json['transaction_status'];
     paymentMethod = json['payment_method'];
+    bankName = json['bank_name'];
+    vaNumber = json['va_number'];
     pickupCode = json['pickup_code'];
     checkoutDate = DateTime.parse(json['checkout_date'].toString());
     checkoutTime = json['checkout_time'];
     details = json['transaction_details']
         .map<TransactionDetailModel>((detail) => TransactionDetailModel.fromJson(detail)).toList();
     countRemainingDetails = details.length - 1;
-    //user detail (name, phone number, alamat, note alamat) -> ini kayaknya taruh di tmpat terpisah krn hanya bakal dipanggil kalo user klik card preview
-    //va number, nama bank?
   }
 }
 
