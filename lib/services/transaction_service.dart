@@ -10,6 +10,7 @@ class TransactionService {
 
   Future<List<TransactionModel>> getTransactionHistory({
     required String token,
+    String? searchQuery
   }) async {
     var url = '$baseUrl/transactions';
     var headers = {
@@ -17,8 +18,12 @@ class TransactionService {
       'Authorization': token,
     };
 
+    Map<String, dynamic> qParams = {
+      'searchQuery': searchQuery?.toLowerCase(),
+    };
+
     var response = await http.get(
-      Uri.parse(url),
+      Uri.parse(url).replace(queryParameters: qParams),
       headers: headers,
     );
 
@@ -34,7 +39,7 @@ class TransactionService {
 
       return transactions;
     } else {
-      throw Exception('Gagal checkout');
+      throw Exception('Gagal mengambil histori transaksi');
     }
   }
 
@@ -60,7 +65,63 @@ class TransactionService {
       UserDetailModel orderReceiver = UserDetailModel.fromJson(data);
       return orderReceiver;
     } else {
-      throw Exception('Gagal mengambhil data penerima pesanan');
+      throw Exception('Gagal mengambil data penerima pesanan');
+    }
+  }
+
+  Future<bool> checkPickupCode({
+    required int transactionId,
+    required String inputCode,
+  }) async {
+    var url = '$baseUrl/checkPickupCode/$transactionId';
+    var headers = {
+      'Content-Type': 'application/json',
+    };
+    var body = jsonEncode({
+      'pickup_code': inputCode,
+    });
+
+    var response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Kode pengambilan yang dimasukkan keliru');
+    }
+  }
+
+  Future<bool> updateStatus({
+    required int transactionId,
+    required String newStatus,
+  }) async {
+    var url = '$baseUrl/updateStatus/$transactionId';
+
+    var headers = {
+      'Content-Type': 'application/json',
+    };
+
+    var body = jsonEncode({
+      'status': newStatus,
+    });
+
+    var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Status transaksi gagal diperbarui');
     }
   }
 }

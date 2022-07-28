@@ -15,6 +15,9 @@ class TransactionPage extends StatefulWidget {
 }
 
 class _TransactionPageState extends State<TransactionPage> {
+  TextEditingController searchController = TextEditingController(text: '');
+  bool searchStatusFilled = false;
+
   @override
   void initState() {
     super.initState();
@@ -22,50 +25,90 @@ class _TransactionPageState extends State<TransactionPage> {
   }
 
   getInit() async {
-    await Provider.of<TransactionProvider>(context, listen: false).getTransactionHistory();
+    await Provider.of<TransactionProvider>(context, listen: false).getTransactionHistory(searchQuery: null);
+    await Provider.of<TransactionProvider>(context, listen: false).pusherTransactionHistory();
   }
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController searchController = TextEditingController(text: '');
+    void clearSearch() {
+      searchController.clear();
+      searchStatusFilled = false;
+      setState(() {
+        searchStatusFilled = false;
+      });
+      context.read<TransactionProvider>().getTransactionHistory(searchQuery: null);
+    }
 
     Widget search() {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
         child: TextFormField(
-          style: primaryTextStyle,
+          style: primaryTextStyle.copyWith(fontSize: 14),
           controller: searchController,
           textInputAction: TextInputAction.search,
           decoration: InputDecoration(
             isCollapsed: true,
             isDense: true,
-            contentPadding: const EdgeInsets.all(12),
+            contentPadding: const EdgeInsets.all(10),
             fillColor: Colors.white,
             filled: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: secondaryTextColor),
             ),
-            hintText: 'Cari transaksi',
-            hintStyle: secondaryTextStyle,
+            hintText: 'Cari produk/kode nota/nama penerima',
+            hintStyle: secondaryTextStyle.copyWith(fontSize: 13),
             prefixIcon: Icon(Icons.search, color: secondaryTextColor, size: 20,),
-            // suffixIcon: _statusFilled
-            //     ? InkWell(
-            //     onTap: () {
-            //       clearSearch();
-            //     },
-            //     child: Icon(Icons.cancel, color: secondaryTextColor, size: 20,)
-            // )
-            // : null,
+            suffixIcon: searchStatusFilled
+                ? InkWell(
+                onTap: () {
+                  clearSearch();
+                },
+                child: Icon(Icons.cancel, color: secondaryTextColor, size: 20,)
+            )
+            : null,
           ),
-          // onChanged: (value) { //onChanged atau onSubmitted enaknya?
-          //   productProvider.searchProduct(value);
-          //   if(value.isNotEmpty) {
-          //     _statusFilled = true;
-          //   } else {
-          //     _statusFilled = false;
-          //   }
-          // },
+          onChanged: (value) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              //context.read<TransactionProvider>().transactions = [];
+              context.read<TransactionProvider>().getTransactionHistory(searchQuery: value);
+            });
+            if(value.isNotEmpty) {
+              setState(() {
+                searchStatusFilled = true;
+              });
+            } else {
+              setState(() {
+                searchStatusFilled = false;
+              });
+            }
+          },
+        ),
+      );
+    }
+
+    Widget loadingWidget() {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    Widget emptyDataWidget() {
+      return SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 80,),
+            Image.asset('assets/empty-icon.png', width: MediaQuery.of(context).size.width - (15 * defaultMargin),),
+            const SizedBox(height: 16,),
+            Text(
+              'Pencarian transaksi tidak ditemukan',
+              textAlign: TextAlign.center,
+              style: primaryTextStyle.copyWith(
+                  fontWeight: medium,
+                  fontSize: 16),
+            )
+          ],
         ),
       );
     }
@@ -78,18 +121,18 @@ class _TransactionPageState extends State<TransactionPage> {
               child: Consumer<TransactionProvider>(
                 builder: (context, data, child) {
                   return SizedBox(
-                      child: data.loadingGetData ?
-                      const Center(
-                        child: CircularProgressIndicator(),
-                      )
-                          : ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: data.transactions.length,
-                        itemBuilder: (context, index) {
-                          TransactionModel transactions = data.transactions[index];
-                          return TransactionCard(transactions: transactions);
-                        },
-                      )
+                      child: data.loadingGetData
+                          ? loadingWidget()
+                          : data.transactions.isEmpty
+                              ? emptyDataWidget()
+                              : ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: data.transactions.length,
+                                  itemBuilder: (context, index) {
+                                    TransactionModel transactions = data.transactions[index];
+                                    return TransactionCard(transactions: transactions);
+                                  },
+                                )
                   );
                 },
               )

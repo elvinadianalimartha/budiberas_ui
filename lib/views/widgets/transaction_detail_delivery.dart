@@ -7,6 +7,7 @@ import 'package:skripsi_budiberas_9701/theme.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/app_bar.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/image_builder.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_detail_widget.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_status_label.dart';
 
 import '../../models/transaction_model.dart';
 
@@ -23,7 +24,6 @@ class TransactionDetailDelivery extends StatefulWidget {
 }
 
 class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
-  late TransactionProvider transactionProvider;
 
   @override
   void initState() {
@@ -31,22 +31,49 @@ class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
     getInit();
   }
 
-  getInit() async{
-    transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
-    await Provider.of<TransactionProvider>(context, listen: false).getOrderReceiver(widget.transactions.userDetailId!);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    //transactionProvider.disposeOrderReceiver();
+  getInit() async {
+    await Provider.of<TransactionProvider>(context, listen: false).pusherTransactionHistory();
   }
 
   @override
   Widget build(BuildContext context) {
     var formatter = NumberFormat.decimalPattern('id');
+    String formattedPaymentMethod = widget.transactions.paymentMethod.replaceAll('_', ' ').toUpperCase();
 
     double totalPriceProduct = widget.transactions.totalPrice - widget.transactions.shippingRate;
+    String formattedDate = DateFormat('dd MMMM yyyy', 'id').format(widget.transactions.checkoutDate);
+
+    Widget header() {
+      return Consumer<TransactionProvider>(
+        builder: (context, data, child) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.transactions.invoiceCode,
+                  style: primaryTextStyle.copyWith(fontSize: 13),
+                ),
+                const SizedBox(height: 5,),
+                Text(
+                  'Tanggal pembelian: ' + formattedDate + ' | ' + widget.transactions.checkoutTime,
+                  style: greyTextStyle.copyWith(fontSize: 13),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Divider(thickness: 1,),
+                ),
+                //jika mau connect ke pusher, harus pakai consumer (atau set state) spy bisa langsung terubah datanya
+                TransactionStatusLabel().statusDetail(
+                    data.transactions.where((e) => e.id == widget.transactions.id).first.transactionStatus
+                ),
+              ],
+            ),
+          );
+        }
+      );
+    }
 
     Widget deliveryDetail() {
       return Padding(
@@ -60,23 +87,23 @@ class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
             ),
             const SizedBox(height: 4,),
             Text(
-              transactionProvider.orderReceiver!.addressOwner,
-              style: primaryTextStyle,
+              widget.transactions.orderReceiver!,
+              style: primaryTextStyle.copyWith(fontSize: 13),
             ),
             const SizedBox(height: 4,),
             Text(
-              transactionProvider.orderReceiver!.phoneNumber,
-              style: greyTextStyle
+              widget.transactions.phoneNumber!,
+              style: greyTextStyle.copyWith(fontSize: 13)
             ),
             const SizedBox(height: 4,),
             Text(
-              transactionProvider.orderReceiver!.address,
-              style: greyTextStyle
+                widget.transactions.address!,
+              style: greyTextStyle.copyWith(fontSize: 13)
             ),
-            transactionProvider.orderReceiver!.addressNotes != null
+            widget.transactions.detailAddress != null
               ? Text(
-                  '(${transactionProvider.orderReceiver!.addressNotes})',
-                  style: greyTextStyle
+                  '(${widget.transactions.detailAddress!})',
+                  style: greyTextStyle.copyWith(fontSize: 13)
               )
               : const SizedBox(),
           ],
@@ -98,6 +125,7 @@ class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
               ),
             ),
             ListView.builder(
+              physics: const NeverScrollableScrollPhysics(), //disable scrolling
               padding: const EdgeInsets.only(bottom: 0),
               shrinkWrap: true,
               itemCount: widget.transactions.details.length,
@@ -105,8 +133,7 @@ class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
                 return OrderDetailWidget(
                   photo: widget.transactions.details[index].product.galleries.isNotEmpty
                       ? ImageBuilderWidgets().imageFromNetwork(
-                      imageUrl: widget.transactions.details[index].product.galleries[0]
-                          .url!,
+                      imageUrl: widget.transactions.details[index].product.galleries[0].url!,
                       width: 60,
                       height: 60,
                       sizeIconError: 60
@@ -156,46 +183,67 @@ class _TransactionDetailDeliveryState extends State<TransactionDetailDelivery> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Metode Pembayaran',
+                  'Metode Bayar',
                   style: primaryTextStyle.copyWith(fontWeight: semiBold),
                 ),
+                const SizedBox(width: 20,),
+                Flexible(
+                  child: Text(
+                    widget.transactions.bankName == null
+                      ? formattedPaymentMethod
+                      : formattedPaymentMethod + ' ' + widget.transactions.bankName!.toUpperCase(),
+                    style: orderNotesTextStyle.copyWith(fontWeight: semiBold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
+                )
+              ],
+            ),
+            const SizedBox(height: 8,),
+            widget.transactions.vaNumber != null
+            ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
                 Text(
-                  widget.transactions.paymentMethod,
-                  style: orderNotesTextStyle.copyWith(fontWeight: semiBold),
+                  'Nomor VA',
+                  style: primaryTextStyle.copyWith(fontWeight: semiBold),
+                ),
+                const SizedBox(width: 20,),
+                Flexible(
+                  child: Text(
+                    widget.transactions.vaNumber!,
+                    style: orderNotesTextStyle.copyWith(fontWeight: semiBold, letterSpacing: 1),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
                 )
               ],
             )
+            : const SizedBox(),
           ],
         ),
       );
     }
 
-    Widget loading() {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
     return Scaffold(
       appBar: customAppBar(text: 'Detail Riwayat Transaksi'),
-      body: Consumer<TransactionProvider>(
-        builder: (context, transProv, child) {
-          if(transProv.loadingReceiver == false) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                deliveryDetail(),
-                const Divider(thickness: 2,),
-                orderList(),
-                const Divider(thickness: 2,),
-                billing(),
-              ],
-            );
-          } else {
-            return loading();
-          }
-        }
-      )
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            header(),
+            const Divider(thickness: 2,),
+            deliveryDetail(),
+            const Divider(thickness: 2,),
+            orderList(),
+            const Divider(thickness: 2,),
+            billing(),
+            const SizedBox(height: 20,),
+          ],
+        ),
+      ),
     );
   }
 }

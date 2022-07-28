@@ -1,8 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/models/transaction_model.dart';
+import 'package:skripsi_budiberas_9701/providers/transaction_provider.dart';
+import 'package:skripsi_budiberas_9701/views/pickup_confirmation_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/image_builder.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/trans_update_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_status_label.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/transaction_detail_delivery.dart';
 
 import '../../theme.dart';
@@ -21,34 +26,39 @@ class TransactionCard extends StatelessWidget {
     String formattedDate = DateFormat('dd MMMM yyyy', 'id').format(transactions.checkoutDate);
 
     Widget header() {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Flexible(
-            child: Text(
-              formattedDate + ' | ' + transactions.checkoutTime,
-              style: primaryTextStyle.copyWith(fontSize: 12),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  formattedDate + ' | ' + transactions.checkoutTime,
+                  style: secondaryTextStyle.copyWith(fontSize: 11),
+                ),
+              ),
+              const SizedBox(width: 12,),
+              TransactionStatusLabel().labellingStatus(transactions.transactionStatus),
+            ],
           ),
-          const SizedBox(width: 12,),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: fourthColor.withOpacity(0.5),
-            ),
-            child: Text(
-              transactions.transactionStatus,
-              style: priceTextStyle.copyWith(fontSize: 12),
-            ),
-          )
+          const SizedBox(height: 4,),
+          Text(
+            transactions.invoiceCode,
+            style: primaryTextStyle.copyWith(fontSize: 12),
+          ),
+          Text(
+            'Metode: ' + transactions.shippingType,
+            style: greyTextStyle.copyWith(fontSize: 12),
+          ),
+          const Divider(thickness: 1,),
         ],
       );
     }
 
     Widget content() {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -107,6 +117,46 @@ class TransactionCard extends StatelessWidget {
       );
     }
 
+    handleUpdateStatusToDone({
+      required String status,
+    }) async {
+      if(await context.read<TransactionProvider>().updateStatusTransaction(id: transactions.id, newStatus: status)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Transaksi berhasil diselesaikan'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Transaksi gagal diselesaikan'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
+        );
+      }
+    }
+
+    transUpdateBtn(String status) {
+      switch (status.toLowerCase()) {
+        case 'arrived': //pesan antar tiba di tujuan
+          return TransUpdateBtn(
+            text: 'Selesai',
+            onClick: () {
+              //updateStatus to done
+              handleUpdateStatusToDone(status: 'done');
+            },
+          );
+        case 'ready to take':
+          return TransUpdateBtn(
+            text: 'Ambil Pesanan',
+            onClick: () {
+              //navigator push ke page konfirmasi (isi kode pickup)
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PickupConfirmationPage(
+                transactionId: transactions.id,
+                invoiceCode: transactions.invoiceCode,
+              )));
+            },
+          );
+        default:
+          return const SizedBox();
+      }
+    }
+
     Widget footer() {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,10 +165,7 @@ class TransactionCard extends StatelessWidget {
             'Total: Rp ' + formatter.format(transactions.totalPrice),
             style: priceTextStyle,
           ),
-          Text(
-            'Metode: ' + transactions.shippingType,
-            style: primaryTextStyle,
-          )
+          transUpdateBtn(transactions.transactionStatus),
         ],
       );
     }
