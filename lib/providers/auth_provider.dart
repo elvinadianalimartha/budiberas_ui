@@ -14,18 +14,36 @@ class AuthProvider with ChangeNotifier{
   }
 
   Future<bool> register({
-    String? name,
-    String? email,
-    String? password
+    required String name,
+    required String email,
+    required String password,
+    required String fcmToken,
+    required String regency,
+    required String district,
+    required String address,
+    String? addressNotes,
+    required double latitude,
+    required double longitude,
+    required String phoneNumber,
   }) async {
     try {
-      UserModel user = await AuthService().register(
-        name: name,
-        email: email,
-        password: password,
-      );
-      _user = user;
-      return true; //berhasil mendaftar
+     if(await AuthService().register(
+       name: name,
+       email: email,
+       password: password,
+       fcmToken: fcmToken,
+       regency: regency,
+       district: district,
+       address: address,
+       addressNotes: addressNotes,
+       latitude: latitude,
+       longitude: longitude,
+       phoneNumber: phoneNumber,
+     )) {
+       return true; //berhasil mendaftar
+     } else {
+       return false;
+     }
     }catch(e) {
       print(e);
       return false;
@@ -42,6 +60,7 @@ class AuthProvider with ChangeNotifier{
         password: password,
       );
       _user = user;
+      notifyListeners();
       return true; //berhasil login
     }catch(e) {
       print(e);

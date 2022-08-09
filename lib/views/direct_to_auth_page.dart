@@ -43,7 +43,9 @@ class DirectToAuthPage extends StatelessWidget {
             ),
             const SizedBox(height: 16,),
             TextButton(
-              onPressed: () {  },
+              onPressed: () {
+                Navigator.pushNamed(context, '/registration');
+              },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 36),
                 shape: RoundedRectangleBorder(

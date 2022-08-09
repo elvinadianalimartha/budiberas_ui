@@ -7,18 +7,33 @@ import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 class AuthService{
   String baseUrl = constants.baseUrl + '/user';
 
-  Future<UserModel> register({
-    String? name,
-    String? email,
-    String? password
+  Future<bool> register({
+    required String name,
+    required String email,
+    required String password,
+    required String fcmToken,
+    required String regency,
+    required String district,
+    required String address,
+    String? addressNotes,
+    required double latitude,
+    required double longitude,
+    required String phoneNumber,
   }) async {
-
     var url = '$baseUrl/register';
     var headers = {'Content-Type': 'application/json'};
     var body = jsonEncode({
       'name': name,
       'email': email,
       'password': password,
+      'fcm_token': fcmToken,
+      'regency': regency,
+      'district': district,
+      'address': address,
+      'address_notes': addressNotes,
+      'latitude': latitude,
+      'longitude': longitude,
+      'phone_number': phoneNumber
     }); //utk kirim data harus di-encode dulu
     
     var response = await http.post(
@@ -30,11 +45,7 @@ class AuthService{
     print(response.body);
 
     if(response.statusCode == 200){
-      var data = jsonDecode(response.body)['data'];
-      UserModel user = UserModel.fromJson(data['user']);
-      user.token = 'Bearer ' + data['access_token'];
-
-      return user;
+      return true;
     } else {
       throw Exception('Gagal registrasi!');
     }

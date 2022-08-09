@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +30,17 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   Widget build(BuildContext context) {
+    Widget back() {
+      return IconButton(
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back)
+      );
+    }
+
     handleLogin(AuthProvider authProvider) async {
       setState(() {
         _loading = true;
@@ -37,15 +49,13 @@ class _LoginFormState extends State<LoginForm> {
       if(await authProvider.login(email: emailController.text, password: passwordController.text)) {
         loginData = await SharedPreferences.getInstance();
         loginData.setString('token', authProvider.user!.token!);
-        //await authProvider.fetchDataUser(authProvider.user!.token!);
         context.read<PageProvider>().currentIndex = 0;
-        Navigator.of(context).pop();
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       }else {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text(
                 'Gagal masuk! Email atau kata sandi salah',
-                //textAlign: TextAlign.center,
               ),
               backgroundColor: alertColor,
               duration: const Duration(milliseconds: 700),
@@ -212,10 +222,11 @@ class _LoginFormState extends State<LoginForm> {
                   )
                 ),
                 TextSpan(
-                    text: 'Daftar sekarang',
-                    style: priceTextStyle.copyWith(
-                      fontWeight: semiBold,
-                    )
+                  text: 'Daftar sekarang',
+                  style: priceTextStyle.copyWith(
+                    fontWeight: semiBold,
+                  ),
+                  recognizer: TapGestureRecognizer()..onTap = () => Navigator.pushNamed(context, '/registration')
                 ),
               ]
             )
@@ -228,6 +239,8 @@ class _LoginFormState extends State<LoginForm> {
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
+            Align(alignment: Alignment.centerLeft, child: back()),
+            const SizedBox(height: 20,),
             header(),
             form(),
             const SizedBox(height: 20,),
