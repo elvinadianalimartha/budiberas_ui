@@ -25,6 +25,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   late MessageProvider messageProvider;
+  bool isLoadingSend = false;
 
   @override
   void initState() {
@@ -45,6 +46,9 @@ class _ChatPageState extends State<ChatPage> {
     var formatter = NumberFormat.decimalPattern('id');
 
     handleAddMessage() async {
+      setState(() {
+        isLoadingSend = true;
+      });
       await MessageService().addMessage(
         isFromUser: true,
         message: messageController.text,
@@ -55,6 +59,7 @@ class _ChatPageState extends State<ChatPage> {
 
       //clear after send message
       setState(() {
+        isLoadingSend = false;
         widget.product = UninitializedProductModel();
         messageController.text = '';
       });
@@ -186,10 +191,16 @@ class _ChatPageState extends State<ChatPage> {
                     borderRadius: BorderRadius.circular(12),
                     color: btnColor,
                   ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, size: 20,),
-                    color: Colors.white,
-                    onPressed: () {
+                  child: isLoadingSend
+                    ? IconButton(
+                        padding: const EdgeInsets.all(8),
+                        icon: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2,),
+                        onPressed: (){},
+                      )
+                    : IconButton(
+                      icon: const Icon(Icons.send, size: 20,),
+                      color: Colors.white,
+                      onPressed: () {
                       if(messageController.text != '') {
                         handleAddMessage(); //tdk bisa kirim kalo message masih kosong
                       }
@@ -238,7 +249,7 @@ class _ChatPageState extends State<ChatPage> {
 
     Widget content() {
       return StreamBuilder<List<MessageModel>>(
-        stream: MessageService().getMessagesByUserId(authProvider.user!.id!),
+        stream: MessageService().getMessagesByUserId(authProvider.user!.id),
         builder: (context, snapshot) {
           if(snapshot.hasData) {
             if(snapshot.data!.isEmpty) {
@@ -254,6 +265,7 @@ class _ChatPageState extends State<ChatPage> {
                   isSender: message.isFromUser,
                   text: message.message,
                   product: message.product,
+                  createdAt: message.createdAt,
                 )
               ).toList(),
             );
@@ -271,13 +283,13 @@ class _ChatPageState extends State<ChatPage> {
         automaticallyImplyLeading: false,
         elevation: 0,
         backgroundColor: primaryColor,
-        toolbarHeight: 80,
+        toolbarHeight: 65,
         title: Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Image.asset('assets/small_logo.png', width: 45,),
+              Image.asset('assets/small_logo.png', width: 40,),
               const SizedBox(width: 20,),
               Flexible(
                 child: Column(
@@ -288,14 +300,6 @@ class _ChatPageState extends State<ChatPage> {
                       'Toko Sembako Budi Beras',
                       style: whiteTextStyle.copyWith(
                         fontWeight: semiBold,
-                        fontSize: 16,
-                      ),
-                      maxLines: null,
-                    ),
-                    const SizedBox(height: 2,),
-                    Text(
-                      'Aktif',
-                      style: whiteTextStyle.copyWith(
                         fontSize: 14,
                       ),
                       maxLines: null,
