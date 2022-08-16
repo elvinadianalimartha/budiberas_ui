@@ -86,7 +86,7 @@ class ShopInfoProvider with ChangeNotifier{
     }
 
     if(specialPrice != 0) {
-      result = roundDistance * specialPrice;
+      result = specialPrice;
     } else {
       result = roundDistance * standardPrice;
     }
