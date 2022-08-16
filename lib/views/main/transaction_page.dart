@@ -69,11 +69,8 @@ class _TransactionPageState extends State<TransactionPage> {
             )
             : null,
           ),
-          onChanged: (value) {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              //context.read<TransactionProvider>().transactions = [];
-              context.read<TransactionProvider>().getTransactionHistory(searchQuery: value);
-            });
+          onFieldSubmitted: (value) {
+            context.read<TransactionProvider>().getTransactionHistory(searchQuery: value);
             if(value.isNotEmpty) {
               setState(() {
                 searchStatusFilled = true;
