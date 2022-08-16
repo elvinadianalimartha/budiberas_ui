@@ -1,6 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/models/user_detail_model.dart';
+import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
+import 'package:skripsi_budiberas_9701/views/form/edit_address.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/are_you_sure_dialog.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
 import '../../theme.dart';
 
@@ -18,7 +24,7 @@ class AddressCard extends StatelessWidget {
     Widget editButton() {
       return OutlinedButton(
         onPressed: () {
-
+          Navigator.push(context, MaterialPageRoute(builder: (context) => FormEditAddress(addressToEdit: detail,)));
         },
         style: OutlinedButton.styleFrom(
           side: BorderSide(
@@ -52,10 +58,52 @@ class AddressCard extends StatelessWidget {
       );
     }
 
+    handleDeleteAddress() async{
+      if(await context.read<UserDetailProvider>().deleteAddress(
+          id: detail.id,)
+      ) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data alamat berhasil dihapus'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data gagal dihapus'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
+        );
+      }
+    }
+
+    Future<void> showDialogAreYouSure() async{
+      return showDialog(
+        context: context,
+        builder: (BuildContext context) => AlertDialogWidget(
+          text: 'Apakah Anda yakin ingin menghapus alamat milik ${detail.addressOwner}?',
+          noteText: '(${detail.address})',
+          childrenList: [
+            CancelButton(
+              onClick: () {
+                Navigator.pop(context);
+              },
+              text: 'Tidak',
+              fontSize: 14,
+            ),
+            const SizedBox(width: 16,),
+            DoneButton(
+              onClick: () {
+                handleDeleteAddress();
+              },
+              text: 'Ya, hapus',
+              fontSize: 14,
+            ),
+          ],
+        )
+      );
+    }
+
     Widget deleteButton() {
       return OutlinedButton(
         onPressed: () {
-
+          showDialogAreYouSure();
         },
         style: OutlinedButton.styleFrom(
           side: BorderSide(
@@ -97,48 +145,61 @@ class AddressCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Padding(
-              padding: const EdgeInsets.only(top: 12.0),
-              child: Text(
-                detail.addressOwner,
-                style: primaryTextStyle.copyWith(fontWeight: semiBold),
-              ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  detail.addressOwner,
+                  style: primaryTextStyle.copyWith(fontWeight: semiBold, fontSize: 16),
+                ),
+                detail.defaultAddress == 1
+                  ? Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: fourthColor.withOpacity(0.5),
+                    ),
+                    child: Text(
+                      'Utama',
+                      style: priceTextStyle,
+                    ),
+                  )
+                  : const SizedBox()
+              ],
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    detail.phoneNumber,
-                    style: greyTextStyle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2,),
-                  Text(
-                    detail.address,
-                    style: greyTextStyle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            trailing: detail.defaultAddress == 1
-                ? Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    color: fourthColor.withOpacity(0.5),
-                  ),
-                  child: Text(
-                    'Utama',
-                    style: priceTextStyle,
-                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  detail.phoneNumber,
+                  style: greyTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4,),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: detail.address,
+                        style: greyTextStyle.copyWith(fontSize: 14),
+                      ),
+                      detail.addressNotes != '' && detail.addressNotes != null
+                        ? TextSpan(
+                            text: ' (${detail.addressNotes})',
+                            style: greyTextStyle.copyWith(fontSize: 14),
+                          )
+                        : const TextSpan()
+                    ]
+                  )
                 )
-                : const SizedBox()
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16.0, top: 10, bottom: 20),
