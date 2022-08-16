@@ -25,9 +25,9 @@ class TransactionProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  late UserModel _user;
+  UserModel? _user;
 
-  set user(UserModel userVal) {
+  set user(UserModel? userVal) {
     _user = userVal;
     notifyListeners();
   }
@@ -37,7 +37,7 @@ class TransactionProvider with ChangeNotifier{
   }) async{
     loadingGetData = true;
     try {
-      List<TransactionModel> transactions = await TransactionService().getTransactionHistory(token: _user.token!, searchQuery: searchQuery);
+      List<TransactionModel> transactions = await TransactionService().getTransactionHistory(token: _user!.token!, searchQuery: searchQuery);
       _transactions = transactions;
     } catch (e) {
       print(e);
@@ -86,7 +86,7 @@ class TransactionProvider with ChangeNotifier{
   Future<void> getOrderReceiver(int userDetailId) async{
     loadingReceiver = true;
     try {
-      UserDetailModel receiver = await TransactionService().getOrderReceiver(token: _user.token!, userDetailId: userDetailId);
+      UserDetailModel receiver = await TransactionService().getOrderReceiver(token: _user!.token!, userDetailId: userDetailId);
       _orderReceiver = receiver;
     } catch (e) {
       print(e);
@@ -100,7 +100,7 @@ class TransactionProvider with ChangeNotifier{
     required String inputCode,
   }) async {
     try {
-      if(await TransactionService().checkPickupCode(transactionId: transactionId, inputCode: inputCode)){
+      if(await TransactionService().checkPickupCode(token: _user!.token!, transactionId: transactionId, inputCode: inputCode)){
         return true;
       } else {
         return false;
@@ -116,7 +116,7 @@ class TransactionProvider with ChangeNotifier{
     required String newStatus,
   }) async {
     try {
-      if(await TransactionService().updateStatus(transactionId: id, newStatus: newStatus)) {
+      if(await TransactionService().updateStatus(token: _user!.token!, transactionId: id, newStatus: newStatus)) {
         return true;
       } else {
         return false;

@@ -6,9 +6,9 @@ import '../models/cart_model.dart';
 import '../models/user_model.dart';
 
 class OrderConfirmationProvider with ChangeNotifier{
-  late UserModel _user;
+  UserModel? _user;
 
-  set user(UserModel userVal) {
+  set user(UserModel? userVal) {
     _user = userVal;
     notifyListeners();
   }
@@ -27,7 +27,7 @@ class OrderConfirmationProvider with ChangeNotifier{
   Future<void> getSelectedCarts() async {
     loadingGetData = true;
     try {
-      List<CartModel> selectedCarts = await CartService().getSelectedCart(token: _user.token!);
+      List<CartModel> selectedCarts = await CartService().getSelectedCart(token: _user!.token!);
       _selectedCartsFromServer = selectedCarts;
     } catch (e) {
       print(e);
@@ -67,7 +67,7 @@ class OrderConfirmationProvider with ChangeNotifier{
     try {
       _snapToken = '';
       String link = await CheckoutService().checkout(
-        token: _user.token!,
+        token: _user!.token!,
         totalPrice: totalPrice,
         orderReceiver: orderReceiver,
         phoneNumber: phoneNumber,
@@ -97,7 +97,7 @@ class OrderConfirmationProvider with ChangeNotifier{
 }) async{
     try {
       if(await CheckoutService().savePaymentInfo(
-          token: _user.token!,
+          token: _user!.token!,
           midtransOrderId: midtransOrderId,
           paymentMethod: paymentMethod,
           bankName: bankName,
