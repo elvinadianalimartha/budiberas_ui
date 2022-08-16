@@ -86,14 +86,15 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       );
     }
 
-    Widget shippingTypeField({
+    Widget shippingField({
       required Widget iconData,
       required String typeName,
       required List<Widget> listNotes,
       required VoidCallback onTap,
+      required String labelBtn,
     }) {
       return Padding(
-        padding: const EdgeInsets.only(top: 10, bottom: 16, left: 20, right: 20),
+        padding: const EdgeInsets.only(top: 10, bottom: 12, left: 20, right: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -120,7 +121,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 ),
                 changeBtn(
                   onTap: onTap,
-                  textData: 'Ganti metode'
+                  textData: labelBtn
                 ),
               ],
             ),
@@ -195,69 +196,34 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
 
     Widget addressField() {
       return Padding(
-        padding: const EdgeInsets.only(bottom: 6, left: 20, right: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              horizontalTitleGap: 10,
-              contentPadding: const EdgeInsets.all(0),
-              leading: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: thirdColor,
-                ),
-                padding: const EdgeInsets.all(6),
-                child: const Icon(Icons.location_on_rounded, size: 20, color: Colors.white,),
-              ),
-              title: Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  'Alamat Pengiriman',
-                  style: primaryTextStyle.copyWith(
-                    fontSize: 15,
-                    fontWeight: semiBold,
-                  ),
-                ),
-              ),
-              subtitle: Consumer<UserDetailProvider>(
-                  builder: (context, aaaa, child) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 6.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userDetailProvider.defaultUserDetail!.addressOwner,
-                            style: primaryTextStyle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            userDetailProvider.defaultUserDetail!.phoneNumber,
-                            style: greyTextStyle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            userDetailProvider.defaultUserDetail!.address,
-                            style: greyTextStyle,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
-                      ),
-                    );
-                  }
-              ),
-              trailing: changeBtn(
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressPage(isFromConfirmationPage: true)));
-                  },
-                  textData: 'Ganti alamat'
-              ),
+        padding: const EdgeInsets.only(top: 6),
+        child: shippingField(
+          labelBtn: 'Ganti alamat',
+          iconData: const Icon(Icons.location_on_rounded, size: 20, color: Colors.white,),
+          typeName: 'Alamat Pengiriman',
+          listNotes: [
+            Text(
+              userDetailProvider.defaultUserDetail!.addressOwner,
+              style: primaryTextStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
+            Text(
+              userDetailProvider.defaultUserDetail!.phoneNumber,
+              style: greyTextStyle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              userDetailProvider.defaultUserDetail!.address,
+              style: greyTextStyle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            )
           ],
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressPage(isFromConfirmationPage: true)));
+          },
         ),
       );
     }
@@ -265,7 +231,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Widget selfPickup() {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: shippingTypeField(
+        child: shippingField(
+          labelBtn: 'Ganti metode',
           iconData: const Icon(Icons.directions_walk, size: 20, color: Colors.white,),
           typeName: 'Ambil Mandiri',
           listNotes: [
@@ -274,11 +241,25 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               style: greyTextStyle,
               maxLines: null,
             ),
-            Text(
-              'Jalan Parangtritis no.76, Mantrijeron, Yogyakarta (Seberang Pasar Prawirotaman)',
-              style: primaryTextStyle,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+            Consumer<ShopInfoProvider>(
+              builder: (context, shopInfoProv, child) {
+                return RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: shopInfoProv.shopInfo!.shopAddress,
+                        style: greyTextStyle.copyWith(fontSize: 15),
+                      ),
+                      shopInfoProv.shopInfo!.addressNotes != '' && shopInfoProv.shopInfo!.addressNotes != null
+                          ? TextSpan(
+                              text: ' (${shopInfoProv.shopInfo!.addressNotes})',
+                              style: greyTextStyle.copyWith(fontSize: 15),
+                            )
+                          : const TextSpan()
+                    ]
+                  )
+                );
+              }
             ),
           ],
           onTap: () {
@@ -308,7 +289,8 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Widget delivery() {
       return Consumer2<ShopInfoProvider, UserDetailProvider>(
         builder: (context, shopInfoProv, userDetailProv, child) {
-          return shippingTypeField(
+          return shippingField(
+            labelBtn: 'Ganti metode',
             iconData: Image.asset('assets/delivery_icon.png', width: 18, color: Colors.white,),
             typeName: 'Pesan Antar',
             listNotes: [
