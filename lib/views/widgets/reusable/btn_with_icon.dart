@@ -27,6 +27,7 @@ class BtnWithIcon extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: 24,
+            vertical: 12
           )
       ),
       child: Row(

@@ -5,11 +5,13 @@ import '../../../theme.dart';
 
 class AlertDialogWidget extends StatelessWidget {
   final String text;
+  String? noteText;
   final List<Widget>? childrenList;
 
-  const AlertDialogWidget({
+  AlertDialogWidget({
     Key? key,
     required this.text,
+    this.noteText,
     this.childrenList,
   }) : super(key: key);
 
@@ -30,13 +32,19 @@ class AlertDialogWidget extends StatelessWidget {
                   color: Color(0xffffdeeb),
                   shape: BoxShape.circle,
                 ),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 child: Icon(Icons.question_mark, size: 30, color: alertColor,)),
             const SizedBox(height: 12,),
             Text(
               text,
-              style: primaryTextStyle, textAlign: TextAlign.center,
+              style: primaryTextStyle.copyWith(fontSize: 15), textAlign: TextAlign.center,
             ),
+            noteText != null
+              ? Text(
+                noteText!,
+                style: greyTextStyle.copyWith(fontSize: 15), textAlign: TextAlign.center,
+              )
+              : const SizedBox(),
             SizedBox(height: defaultMargin,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

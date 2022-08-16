@@ -56,7 +56,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
       textInputAction: widget.actionKeyboard,
       obscureText: widget.obscureText,
       focusNode: widget.focusNode,
-      style: primaryTextStyle,
+      style: primaryTextStyle.copyWith(fontSize: 14),
       decoration: InputDecoration(
         isCollapsed: true,
         isDense: true,
@@ -69,7 +69,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
         prefix: widget.prefix,
         suffixIcon: widget.suffixIcon,
         hintText: widget.hintText,
-        hintStyle: secondaryTextStyle,
+        hintStyle: secondaryTextStyle.copyWith(fontSize: 14),
         filled: true,
         fillColor: formColor,
         contentPadding: const EdgeInsets.all(16),
