@@ -122,7 +122,11 @@ class CartProvider with ChangeNotifier{
 
   setCheckAllValue() {
     List<CartModel> _activeCarts = _carts.where((cart) => cart.product.stockStatus.toLowerCase() == 'aktif').toList();
-    _checkAll = _activeCarts.every((item) => item.isSelected);
+    if(_activeCarts.isNotEmpty){
+      _checkAll = _activeCarts.every((item) => item.isSelected);
+    } else {
+      _checkAll = false;
+    }
     notifyListeners();
   }
 
