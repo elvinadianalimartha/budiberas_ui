@@ -49,4 +49,73 @@ class AddressManagementService {
       throw Exception('Data alamat gagal ditambahkan');
     }
   }
+
+  Future<bool> updateAddress({
+    required int id,
+    required String token,
+    required String addressOwner,
+    required String regency,
+    required String district,
+    required String address,
+    String? addressNotes,
+    required double latitude,
+    required double longitude,
+    required String phoneNumber,
+    required int defaultAddress,
+  }) async {
+    var url = '$baseUrl/address/$id';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+    var body = jsonEncode({
+      'address_owner': addressOwner,
+      'regency': regency,
+      'district': district,
+      'address': address,
+      'address_notes': addressNotes,
+      'latitude': latitude,
+      'longitude': longitude,
+      'phone_number': phoneNumber,
+      'default_address': defaultAddress,
+    });
+
+    var response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Data alamat gagal diubah');
+    }
+  }
+
+  Future<bool> deleteAddress({
+    required int id,
+    required String token,
+  }) async {
+    var url = '$baseUrl/address/$id';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var response = await http.delete(
+        Uri.parse(url),
+        headers: headers,
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception('Data alamat gagal dihapus');
+    }
+  }
 }

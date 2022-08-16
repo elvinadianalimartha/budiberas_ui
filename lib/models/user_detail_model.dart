@@ -1,6 +1,6 @@
 class UserDetailModel{
   late int id, userId;
-  late String addressOwner, address, phoneNumber;
+  late String addressOwner, regency, district, address, phoneNumber;
   String? addressNotes;
   late double latitude, longitude;
   late int defaultAddress;
@@ -9,6 +9,8 @@ class UserDetailModel{
     required this.id,
     required this.userId,
     required this.addressOwner,
+    required this.regency,
+    required this.district,
     required this.address,
     this.addressNotes,
     required this.latitude,
@@ -21,6 +23,8 @@ class UserDetailModel{
     id = json['id'];
     userId = int.parse(json['user_id'].toString());
     addressOwner = json['address_owner'];
+    regency = json['regency'];
+    district = json['district'];
     address = json['address'];
     addressNotes = json['address_notes'];
     latitude = double.parse(json['latitude'].toString());
