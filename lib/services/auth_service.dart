@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/user_model.dart';
@@ -11,7 +12,6 @@ class AuthService{
     required String name,
     required String email,
     required String password,
-    required String fcmToken,
     required String regency,
     required String district,
     required String address,
@@ -26,7 +26,6 @@ class AuthService{
       'name': name,
       'email': email,
       'password': password,
-      'fcm_token': fcmToken,
       'regency': regency,
       'district': district,
       'address': address,
@@ -61,6 +60,7 @@ class AuthService{
     var body = jsonEncode({
       'email': email,
       'password': password,
+      'fcm_token': await FirebaseMessaging.instance.getToken()
     }); //utk kirim data harus di-encode dulu
 
     var response = await http.post(
@@ -79,6 +79,35 @@ class AuthService{
       return user;
     } else {
       throw Exception('Gagal login!');
+    }
+  }
+
+  Future<bool> updateFcmToken({
+    required String token,
+    required int userId,
+    required String fcmToken,
+  }) async {
+    var url = '$baseUrl/userFcmToken/$userId';
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+    var body = jsonEncode({
+      'fcm_token': fcmToken,
+    });
+
+    var response = await http.put(
+        Uri.parse(url),
+        headers: headers,
+        body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200){
+      return true;
+    } else {
+      throw Exception('FCM token gagal diperbarui!');
     }
   }
 

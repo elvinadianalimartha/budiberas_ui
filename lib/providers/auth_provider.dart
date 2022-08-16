@@ -17,7 +17,6 @@ class AuthProvider with ChangeNotifier{
     required String name,
     required String email,
     required String password,
-    required String fcmToken,
     required String regency,
     required String district,
     required String address,
@@ -31,7 +30,6 @@ class AuthProvider with ChangeNotifier{
        name: name,
        email: email,
        password: password,
-       fcmToken: fcmToken,
        regency: regency,
        district: district,
        address: address,
@@ -62,6 +60,27 @@ class AuthProvider with ChangeNotifier{
       _user = user;
       notifyListeners();
       return true; //berhasil login
+    }catch(e) {
+      print(e);
+      return false;
+    }
+  }
+
+  Future<bool> updateFcmToken({
+    required String token,
+    required int userId,
+    required String fcmToken,
+  }) async {
+    try {
+      if(await AuthService().updateFcmToken(
+        token: token,
+        userId: userId,
+        fcmToken: fcmToken,
+      )) {
+        return true;
+      } else {
+        return false;
+      }
     }catch(e) {
       print(e);
       return false;

@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -193,12 +192,12 @@ class _RegistrationFormPage2State extends State<RegistrationFormPage2> {
         isLoading = true;
       });
 
-      String? token = await FirebaseMessaging.instance.getToken();
+      //String? token = await FirebaseMessaging.instance.getToken();
       if(await context.read<AuthProvider>().register(
           name: widget.name,
           email: widget.email,
           password: widget.password,
-          fcmToken: token!,
+          //fcmToken: token!,
           regency: _selectedRegency!,
           district:  _selectedDistrict!,
           address: addressController.text,
