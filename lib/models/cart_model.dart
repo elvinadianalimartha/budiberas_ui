@@ -12,7 +12,7 @@ class CartModel{
     required this.id,
     required this.product,
     required this.quantity,
-    required this.orderNotes,
+    this.orderNotes,
     required this.isSelected,
   });
 
