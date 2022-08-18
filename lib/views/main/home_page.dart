@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/providers/auth_provider.dart';
+import 'package:skripsi_budiberas_9701/views/shop_by_category_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
 
 import '../../providers/category_provider.dart';
@@ -141,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                 return Text(
                   data.user != null ? 'Halo ${data.user!.name}!' : 'Halo!',
                   style: whiteTextStyle.copyWith(
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: semiBold
                   )
                 );
@@ -230,39 +231,48 @@ class _HomePageState extends State<HomePage> {
           ),
           Container(
             margin: const EdgeInsets.only(top: 12, left: 20),
-            child: Consumer<CategoryProvider>(
-              builder: (context, data, child) {
+            child: Consumer2<CategoryProvider,ProductProvider>(
+              builder: (context, data, productProv, child) {
                 return SizedBox(
                   height: 45,
-                  child: ListView.builder(
+                  child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     shrinkWrap: true,
                     physics: const ClampingScrollPhysics(),
                     itemCount: data.categories.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        margin: const EdgeInsets.only(right: 16),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: outlinedBtnColor,
+                      return InkWell(
+                        splashColor: fourthColor,
+                        onTap: () {
+                          productProv.setProductByCategory(data.categories[index].id);
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ShopByCategoryPage(category: data.categories[index],)));
+                        },
+                        child: Ink(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
                           ),
-                          color: transparentColor,
-                        ),
-                        child: Center(
-                          child: Text(
-                            data.categories[index].categoryName,
-                            style: greyTextStyle.copyWith(
-                              fontSize: 13,
-                              fontWeight: medium,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: outlinedBtnColor,
+                            ),
+                            color: transparentColor,
+                          ),
+                          child: Center(
+                            child: Text(
+                              data.categories[index].categoryName,
+                              style: greyTextStyle.copyWith(
+                                fontSize: 13,
+                                fontWeight: medium,
+                              ),
                             ),
                           ),
                         ),
                       );
+                    },
+                    separatorBuilder: (BuildContext context, int index) {
+                      return const SizedBox(width: 16);
                     },
                   ),
                 );
@@ -298,9 +308,9 @@ class _HomePageState extends State<HomePage> {
               right: 20,
               bottom: 20,
             ),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: 0.57,
+              childAspectRatio: MediaQuery.of(context).size.height/1250.toInt(),
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
@@ -337,9 +347,9 @@ class _HomePageState extends State<HomePage> {
                   right: 20,
                   bottom: 20,
                 ),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.69,
+                  childAspectRatio: MediaQuery.of(context).size.height/1000.toInt(),
                   crossAxisSpacing: 20,
                   mainAxisSpacing: 20,
                 ),
