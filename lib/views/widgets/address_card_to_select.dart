@@ -3,15 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/models/user_detail_model.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/are_you_sure_dialog.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
 import '../../theme.dart';
+import '../form/edit_address.dart';
 
 class AddressCardToSelect extends StatelessWidget {
   final UserDetailModel detail;
+  final int indexDetail;
 
   const AddressCardToSelect({
     Key? key,
     required this.detail,
+    required this.indexDetail
   }) : super(key: key);
 
   @override
@@ -21,7 +27,7 @@ class AddressCardToSelect extends StatelessWidget {
     Widget editButton() {
       return OutlinedButton(
         onPressed: () {
-
+          Navigator.push(context, MaterialPageRoute(builder: (context) => FormEditAddress(addressToEdit: detail,)));
         },
         style: OutlinedButton.styleFrom(
           side: BorderSide(
@@ -55,10 +61,52 @@ class AddressCardToSelect extends StatelessWidget {
       );
     }
 
+    handleDeleteAddress() async{
+      if(await context.read<UserDetailProvider>().deleteAddress(
+        id: detail.id,)
+      ) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data alamat berhasil dihapus'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('Data gagal dihapus'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
+        );
+      }
+    }
+
+    Future<void> showDialogAreYouSure() async{
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) => AlertDialogWidget(
+            text: 'Apakah Anda yakin ingin menghapus alamat milik ${detail.addressOwner}?',
+            noteText: '(${detail.address})',
+            childrenList: [
+              CancelButton(
+                onClick: () {
+                  Navigator.pop(context);
+                },
+                text: 'Tidak',
+                fontSize: 14,
+              ),
+              const SizedBox(width: 16,),
+              DoneButton(
+                onClick: () {
+                  handleDeleteAddress();
+                },
+                text: 'Ya, hapus',
+                fontSize: 14,
+              ),
+            ],
+          )
+      );
+    }
+
     Widget deleteButton() {
       return OutlinedButton(
         onPressed: () {
-
+          showDialogAreYouSure();
         },
         style: OutlinedButton.styleFrom(
           side: BorderSide(
@@ -106,12 +154,22 @@ class AddressCardToSelect extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2,),
-              Text(
-                detail.address,
-                style: greyTextStyle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: detail.address,
+                      style: greyTextStyle.copyWith(fontSize: 14),
+                    ),
+                    detail.addressNotes != '' && detail.addressNotes != null
+                        ? TextSpan(
+                      text: ' (${detail.addressNotes})',
+                      style: greyTextStyle.copyWith(fontSize: 14),
+                    )
+                        : const TextSpan()
+                  ]
+                )
+              )
             ],
           ),
         ),
@@ -164,7 +222,7 @@ class AddressCardToSelect extends StatelessWidget {
                   children: [
                     editButton(),
                     const SizedBox(width: 30,),
-                    deleteButton(),
+                    indexDetail == 0 ? const SizedBox() : deleteButton(),
                   ],
                 ),
               )

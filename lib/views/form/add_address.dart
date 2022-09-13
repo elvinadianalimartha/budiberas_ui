@@ -1,12 +1,8 @@
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:provider/provider.dart';
-import 'package:skripsi_budiberas_9701/models/regency_district_model.dart';
-import 'package:skripsi_budiberas_9701/providers/address_management_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/places_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
 import 'package:skripsi_budiberas_9701/services/places_service.dart';
@@ -14,6 +10,7 @@ import 'package:skripsi_budiberas_9701/views/widgets/reusable/text_field.dart';
 
 import '../../models/address_suggestion_model.dart';
 import '../../theme.dart';
+import '../widgets/reusable/address_manage_widget.dart';
 import '../widgets/reusable/app_bar.dart';
 import '../widgets/reusable/done_button.dart';
 
@@ -34,12 +31,10 @@ class _FormAddAddressState extends State<FormAddAddress> {
   TextEditingController? detailController;
 
   bool isAddressFilled = false;
-  String? _regencyName;
-  String? selectedRegency;
-  String? selectedDistrict;
+  String? _selectedRegency;
+  String? _selectedDistrict;
 
   late PlacesProvider placesProvider;
-  late AddressManagementProvider addressManagementProvider;
   late UserDetailProvider userDetailProvider;
 
   final MapController _mapController = MapController();
@@ -51,7 +46,6 @@ class _FormAddAddressState extends State<FormAddAddress> {
   void initState() {
     super.initState();
     placesProvider = Provider.of<PlacesProvider>(context, listen: false);
-    addressManagementProvider = Provider.of<AddressManagementProvider>(context, listen: false);
     userDetailProvider = Provider.of<UserDetailProvider>(context, listen: false);
     getInit();
   }
@@ -71,13 +65,6 @@ class _FormAddAddressState extends State<FormAddAddress> {
 
   @override
   Widget build(BuildContext context) {
-
-    clearAddress() {
-      addressController.clear();
-      setState(() {
-        isAddressFilled = false;
-      });
-    }
 
     Widget note() {
       return Container(
@@ -131,190 +118,66 @@ class _FormAddAddressState extends State<FormAddAddress> {
     }
 
     Widget phoneNumber() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'No. HP Penerima',
-            style: primaryTextStyle.copyWith(
-              fontWeight: medium,
-            ),
-          ),
-          const SizedBox(height: 8,),
-          TextFormFieldWidget(
-            hintText: 'Masukkan no. HP penerima pesanan',
-            controller: phoneNumberController,
-            textInputType: TextInputType.number,
-            inputFormatter: [FilteringTextInputFormatter.digitsOnly],
-            validator: (value) {
-              if (value!.isEmpty) {
-                return 'No. HP harus diisi';
-              } else if(value.length < 10) {
-                return 'No. HP minimal 10 digit';
-              } else if(value.length > 13) {
-                return 'No. HP maksimal 13 digit';
-              }
-              return null;
-            },
-          ),
-        ],
+      return AddressManageWidgets().phoneNumber(
+          phoneNumberCtrl: phoneNumberController,
+          hintText: 'Masukkan no. HP penerima pesanan'
       );
     }
 
     Widget pickRegencies() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Kabupaten/Kota',
-            style: primaryTextStyle.copyWith(fontWeight: medium),
-          ),
-          Consumer<PlacesProvider>(
-            builder: (context, placesProvider, child) {
-              List<RegencyModel> listRegencies = placesProvider.regencies;
-              return DropdownButtonFormField2(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: (value) {
-                  if(value == null) {
-                    return 'Kabupaten/kota harus dipilih';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  isCollapsed: true,
-                  isDense: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: formColor,
-                  contentPadding: const EdgeInsets.all(16),
-                ),
-                hint: Text('Pilih kabupaten/kota', style: secondaryTextStyle,),
-                items: listRegencies.map((item) {
-                  return DropdownMenuItem<Object>(
-                    child: Text(item.name, style: primaryTextStyle.copyWith(fontSize: 14),),
-                    value: item.name,
-                  );
-                }).toList(),
+      return Consumer<PlacesProvider>(
+          builder: (context, placesProv, child) {
+            return AddressManageWidgets().pickRegencies(
+                placesProvider: placesProv,
+                regencyVal: _selectedRegency,
                 onChanged: (value) {
-                  if(_regencyName != null) {
+                  if(_selectedRegency != null) {
                     //reset value sebelumnya yg ada di bagian district/kecamatan
-                    placesProvider.districts = [];
-                    selectedDistrict = null;
+                    placesProv.districts = [];
+                    _selectedDistrict = null;
 
                     //reset value alamat
-                    placesProvider.addressSuggestions = [];
+                    placesProv.addressSuggestions = [];
                     addressController.text = '';
                   }
-                  _regencyName = value.toString();
-                  placesProvider.getDistrictsByRegency(_regencyName!);
+                  _selectedRegency = value.toString();
+                  placesProv.getDistrictsByRegency(_selectedRegency!);
                 }
-              );
-            }
-          )
-        ],
+            );
+          }
       );
     }
 
     Widget pickDistricts() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Kecamatan',
-            style: primaryTextStyle.copyWith(fontWeight: medium),
-          ),
-          Consumer<PlacesProvider>(
-              builder: (context, placesProvider, child) {
-                List<DistrictModel> listDistricts = placesProvider.districts;
-                return DropdownButtonFormField2(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: (value) {
-                    if(value == null) {
-                      return 'Kecamatan harus dipilih';
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: formColor,
-                    contentPadding: const EdgeInsets.all(16),
-                  ),
-                  hint: Text('Pilih kecamatan', style: secondaryTextStyle,),
-                  items: listDistricts.map((item) {
-                    return DropdownMenuItem<Object>(
-                      child: Text(item.name, style: primaryTextStyle.copyWith(fontSize: 14),),
-                      value: item.name,
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if(selectedDistrict != null) {
-                      //ketika districtnya diganti, alamatnya jg akan ikut terganti shg dihapus
-                      addressController.text = '';
-                    }
-                    setState(() {
-                      selectedDistrict = value.toString();
-                    });
-                    if(selectedDistrict != null) {
-                      placesProvider.getAddressSuggestions(selectedDistrict!); //mengambil daftar alamat berdasarkan kecamatan
-                    }
-                  },
-                  value: selectedDistrict,
-                );
-              }
-          )
-        ],
+      return Consumer<PlacesProvider>(
+          builder: (context, placesProv, child) {
+            return AddressManageWidgets().pickDistricts(
+                placesProvider: placesProv,
+                districtVal: _selectedDistrict,
+                onChanged: (value) {
+                  if(_selectedDistrict != null) {
+                    //ketika districtnya diganti, alamatnya jg akan ikut terganti shg dihapus
+                    addressController.text = '';
+                  }
+                  setState(() {
+                    _selectedDistrict = value.toString();
+                  });
+                  if(_selectedDistrict != null) {
+                    placesProv.getAddressSuggestions(_selectedDistrict!); //mengambil daftar alamat berdasarkan kecamatan
+                  }
+                }
+            );
+          }
       );
     }
 
-    //pilih alamat
-    Widget addressAutocomplete() {
-      return Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Alamat',
-            style: primaryTextStyle.copyWith(
-              fontWeight: medium,
-            ),
-          ),
-          Text(
-            'Jika alamat tidak tersedia pada daftar, silakan pilih '
-                'alamat yang paling mendekati lalu sesuaikan titik lokasi yang '
-                'ada pada peta',
-            style: secondaryTextStyle,
-          ),
-          Consumer<PlacesProvider>(
-            builder: (context, placesProvider, child) {
-              return TypeAheadFormField<AddressSuggestionModel>(
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                itemBuilder: (context, AddressSuggestionModel suggestion) {
-                  return ListTile(
-                    title: Text(suggestion.displayName, style: primaryTextStyle,),
-                  );
-                },
-                validator: (value) {
-                  if(value!.isEmpty) {
-                    return 'Alamat harus dipilih';
-                  }
-                  return null;
-                },
-                debounceDuration: const Duration(milliseconds: 500),
-                suggestionsCallback: (String pattern) {
-                  return placesProvider.addressSuggestions.where((suggestion) => suggestion.displayName.toLowerCase().contains(pattern.toLowerCase()));
-                },
+    Widget addressAutoComplete() {
+      return Consumer<PlacesProvider>(
+          builder: (context, placesProv, child) {
+            return AddressManageWidgets().addressAutocomplete(
+                hintText: 'Masukkan alamat rumah Anda',
+                selectedDistrict: _selectedDistrict,
+                placesProvider: placesProv,
                 onSuggestionSelected: (AddressSuggestionModel suggestion) {
                   addressController.text = suggestion.displayName;
                   setState(() {
@@ -325,47 +188,9 @@ class _FormAddAddressState extends State<FormAddAddress> {
                     _mapController.move(lat_long.LatLng(latitudeForMap!, longitudeForMap!), 14.0);
                   }
                 },
-                textFieldConfiguration: TextFieldConfiguration(
-                  enabled: selectedDistrict == null ? false : true,
-                  style: primaryTextStyle,
-                  controller: addressController,
-                  onChanged: (value) {
-                    if(value.isNotEmpty) {
-                      setState(() {
-                        isAddressFilled = true;
-                      });
-                    } else {
-                      setState(() {
-                        isAddressFilled = false;
-                      });
-                    }
-                  },
-                  decoration: InputDecoration(
-                    isCollapsed: true,
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    contentPadding: const EdgeInsets.all(16),
-                    fillColor: formColor,
-                    hintText: 'Masukkan alamat penerima',
-                    hintStyle: secondaryTextStyle,
-                    suffixIcon: isAddressFilled
-                    ? InkWell(
-                        onTap: () {
-                          clearAddress();
-                        },
-                        child: const Icon(Icons.cancel)
-                      )
-                    : null,
-                  ),
-                ),
-              );
-            }
-          ),
-        ],
+                addressController: addressController
+            );
+          }
       );
     }
 
@@ -377,50 +202,23 @@ class _FormAddAddressState extends State<FormAddAddress> {
       });
     }
 
-    //preview open street map
-    Widget mapPreview() {
+    Widget showMapPreview() {
       mapIsCreated = true;
-      return Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        height: 200,
-        child: FlutterMap(
-          mapController: _mapController,
-          options: MapOptions(
-            onTap: (_, latLong) {
-              setState(() {
-                latitudeForMap = latLong.latitude;
-                longitudeForMap = latLong.longitude;
-              });
-              //get address based on lat lon clicked by marker
-              changePoint(latLong.latitude, latLong.longitude);
+      return AddressManageWidgets().mapPreview(
+        mapController: _mapController,
+        latitudeForMap: latitudeForMap!,
+        longitudeForMap: longitudeForMap!,
+        onTapMap: (_, latLong) {
+          setState(() {
+            latitudeForMap = latLong.latitude;
+            longitudeForMap = latLong.longitude;
+          });
+          //get address based on lat lon clicked by marker
+          changePoint(latLong.latitude, latLong.longitude);
 
-              print(latLong.latitude);
-              print(latLong.longitude);
-            },
-            center: lat_long.LatLng(latitudeForMap!, longitudeForMap!),
-            minZoom: 11.0,
-            maxZoom: 18.0,
-            zoom: 14.0,
-          ),
-          layers: [
-            TileLayerOptions(
-              urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-              subdomains: ['a', 'b', 'c'],
-            ),
-            MarkerLayerOptions(
-              markers: [
-                Marker(
-                  width: 20.0,
-                  height: 20.0,
-                  point: lat_long.LatLng(latitudeForMap!, longitudeForMap!),
-                  builder: (context) => const SizedBox(
-                    child: Icon(Icons.location_on, color: Colors.red, size: 30,),
-                  ),
-                )
-              ],
-            )
-          ],
-        ),
+          print(latLong.latitude);
+          print(latLong.longitude);
+        },
       );
     }
 
@@ -459,7 +257,7 @@ class _FormAddAddressState extends State<FormAddAddress> {
               fontWeight: medium,
             ),
           ),
-          Consumer<AddressManagementProvider>(
+          Consumer<UserDetailProvider>(
             builder: (context, addressManageProvider, child) {
               return Row(
                 children: [
@@ -496,16 +294,16 @@ class _FormAddAddressState extends State<FormAddAddress> {
     }
 
     handleAddNewAddress() async{
-      if(await addressManagementProvider.createNewAddress(
+      if(await userDetailProvider.createNewAddress(
           addressOwner: ownerNameController.text,
-          regency: _regencyName!,
-          district: selectedDistrict!,
+          regency: _selectedRegency!,
+          district: _selectedDistrict!,
           address: addressController.text,
           addressNotes: detailController?.text,
           latitude: latitudeForMap!,
           longitude: longitudeForMap!,
           phoneNumber: phoneNumberController.text,
-          defaultAddress: addressManagementProvider.selectedValue)
+          defaultAddress: userDetailProvider.selectedValue)
       ) {
         await userDetailProvider.getAllDetailUser();
         Navigator.of(context).pop();
@@ -555,10 +353,10 @@ class _FormAddAddressState extends State<FormAddAddress> {
                 pickDistricts(),
 
                 const SizedBox(height: 20,),
-                addressAutocomplete(),
+                addressAutoComplete(),
                 const SizedBox(height: 20,),
                 latitudeForMap != null
-                  ? mapPreview()
+                  ? showMapPreview()
                   : const SizedBox(),
 
                 detailAddress(),
@@ -584,7 +382,7 @@ class _FormAddAddressState extends State<FormAddAddress> {
             Text(
               'Sedang mengambil daftar pilihan kota/kabupaten...',
               style: greyTextStyle,
-            )
+            ),
           ],
         ),
       );

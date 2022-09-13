@@ -12,10 +12,12 @@ import '../../theme.dart';
 
 class AddressCard extends StatelessWidget {
   final UserDetailModel detail;
+  final int indexDetail;
 
   const AddressCard({
     Key? key,
     required this.detail,
+    required this.indexDetail
   }) : super(key: key);
 
   @override
@@ -207,7 +209,7 @@ class AddressCard extends StatelessWidget {
               children: [
                 editButton(),
                 const SizedBox(width: 30,),
-                deleteButton(),
+                indexDetail == 0 ? const SizedBox() : deleteButton(),
               ],
             ),
           )

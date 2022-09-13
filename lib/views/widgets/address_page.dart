@@ -95,9 +95,9 @@ class _AddressPageState extends State<AddressPage> {
                           itemBuilder: (context, index) {
                             UserDetailModel userDetails = data.listUserDetail[index];
                             if(widget.isFromConfirmationPage) {
-                              return AddressCardToSelect(detail: userDetails,);
+                              return AddressCardToSelect(detail: userDetails, indexDetail: index,);
                             } else {
-                              return AddressCard(detail: userDetails,);
+                              return AddressCard(detail: userDetails, indexDetail: index,);
                             }
                         },
                       )
@@ -118,7 +118,7 @@ class _AddressPageState extends State<AddressPage> {
           child: DoneButton(
             text: 'Selesai',
             onClick: () {
-
+              Navigator.of(context).pop();
             },
           ),
         ),
@@ -131,7 +131,7 @@ class _AddressPageState extends State<AddressPage> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          widget.isFromConfirmationPage ? 'Pilih Alamat' : 'Kelola Alamat',
+          widget.isFromConfirmationPage ? 'Pilih Alamat' : 'Kelola Alamat & No. HP',
           style: whiteTextStyle.copyWith(
             fontWeight: semiBold,
             fontSize: 16,
