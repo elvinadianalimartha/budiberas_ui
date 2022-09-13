@@ -8,7 +8,9 @@ import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
 import '../../providers/category_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../theme.dart';
+import '../widgets/product_inactive_card.dart';
 import '../widgets/reusable/direct_to_auth_dialog.dart';
+import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -47,6 +49,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    constants.size = MediaQuery.of(context).size;
+
     void clearSearch() {
       searchController.clear();
       _statusFilled = false;
@@ -84,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                       )
                     : null,
               ),
-              onChanged: (value) { //onChanged atau onSubmitted enaknya?
+              onChanged: (value) {
                 productProvider.searchProduct(value);
                 if(value.isNotEmpty) {
                   _statusFilled = true;
@@ -310,7 +314,7 @@ class _HomePageState extends State<HomePage> {
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: MediaQuery.of(context).size.height/1250.toInt(),
+              childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio1 : constants.ratio2,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
@@ -349,12 +353,12 @@ class _HomePageState extends State<HomePage> {
                 ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: MediaQuery.of(context).size.height/1000.toInt(),
+                  childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio3 : constants.ratio2,
                   crossAxisSpacing: 20,
                   mainAxisSpacing: 20,
                 ),
                 children: data.products.where((e) => e.stockStatus.toLowerCase() == 'tidak aktif').map(
-                        (product) => ProductCard(product: product)
+                        (product) => InactiveProductCard(product: product)
                 ).toList(),
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),

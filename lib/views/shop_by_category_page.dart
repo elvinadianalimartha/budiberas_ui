@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/product_card.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/product_inactive_card.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/app_bar.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
@@ -9,6 +10,7 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../providers/product_provider.dart';
 import '../theme.dart';
+import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
 class ShopByCategoryPage extends StatefulWidget {
   final CategoryModel category;
@@ -58,6 +60,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    constants.size = MediaQuery.of(context).size;
 
     sortPrice() {
       return Consumer<ProductProvider>(
@@ -197,15 +200,12 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                           setModalState(() {
                             productProv.characteristics[index].value = value!;
                           });
-                          // setState(() {
-                          //   productProv.characteristics[index].value = value!;
 
-                            if(productProv.characteristics[index].value == true) {
-                              productProv.addFilterRice(riceFiltersTitle[index]);
-                            } else {
-                              productProv.removeFilterRice(riceFiltersTitle[index]);
-                            }
-                          //});
+                          if(productProv.characteristics[index].value == true) {
+                            productProv.addFilterRice(riceFiltersTitle[index]);
+                          } else {
+                            productProv.removeFilterRice(riceFiltersTitle[index]);
+                          }
                         },
                         value: productProv.characteristics[index].value,
                         controlAffinity: ListTileControlAffinity.trailing,
@@ -378,7 +378,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: MediaQuery.of(context).size.height/1400.toInt(),
+          childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio1 : constants.ratio2,
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
         ),
@@ -413,12 +413,12 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: MediaQuery.of(context).size.height/1180.toInt(),
+              childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio3 : constants.ratio2,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
             children: listNonActiveProducts.where((e) => e.stockStatus.toLowerCase() == 'tidak aktif').map(
-                    (product) => ProductCard(product: product)
+                    (product) => InactiveProductCard(product: product)
             ).toList(),
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -514,6 +514,14 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
       );
     }
 
+    Widget content(ProductProvider productProvider) {
+      return productProvider.selectedFilterSize.isEmpty && productProvider.selectedFilterRiceChar.isEmpty
+        ? allProducts()
+        : productProvider.productMeetFilter.isEmpty
+          ? filteredProductNotFound()
+          : filteredProducts();
+    }
+
     return Scaffold(
       appBar: customAppBar(text: 'Produk Kategori ${widget.category.categoryName}'),
       body: SingleChildScrollView(
@@ -534,11 +542,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                   ),
                   productProvider.productByCategory.isEmpty
                       ? productNotFound()
-                      : productProvider.selectedFilterSize.isEmpty && productProvider.selectedFilterRiceChar.isEmpty
-                          ? allProducts()
-                          : productProvider.productMeetFilter.isEmpty
-                              ? filteredProductNotFound()
-                              : filteredProducts()
+                      : content(productProvider)
                 ],
               );
             }
