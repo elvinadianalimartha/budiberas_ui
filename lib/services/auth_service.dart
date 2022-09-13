@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
@@ -158,6 +159,102 @@ class AuthService{
       return user;
     } else {
       throw Exception('Gagal ambil data user!');
+    }
+  }
+
+  Future<bool> checkOldPass({
+    required String currentPassword,
+  }) async {
+    SharedPreferences loginData = await SharedPreferences.getInstance();
+    String token = loginData.getString('token').toString();
+
+    var url = '$baseUrl/checkOldPass';
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var body = jsonEncode({
+      'old_pass': currentPassword,
+    });
+
+    var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200){
+      return true;
+    } else {
+      throw Exception('Tidak sesuai dengan kata sandi saat ini');
+    }
+  }
+
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmNewPassword
+  }) async {
+    SharedPreferences loginData = await SharedPreferences.getInstance();
+    String token = loginData.getString('token').toString();
+
+    var url = '$baseUrl/changePassword';
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': token,
+    };
+
+    var body = jsonEncode({
+      'current_password': currentPassword,
+      'new_password': newPassword,
+      'new_confirm_password': confirmNewPassword
+    });
+
+    var response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200){
+      return true;
+    } else {
+      throw Exception('Kata sandi gagal diperbarui!');
+    }
+  }
+
+  Future forgotPassword({
+    required String email
+  }) async{
+    var url = '$baseUrl/forgotPassword';
+
+    var headers = {
+      'Content-Type': 'application/json',
+    };
+
+    var body = jsonEncode({
+      'email': email,
+    });
+
+    var response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: body
+    );
+
+    print(response.body);
+
+    if(response.statusCode == 200){
+      return true;
+    } else {
+      throw Exception('Email reset kata sandi gagal dikirim');
     }
   }
 }

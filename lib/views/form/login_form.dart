@@ -164,7 +164,9 @@ class _LoginFormState extends State<LoginForm> {
       return Align(
         alignment: Alignment.centerRight,
         child: TextButton(
-          onPressed: () {  },
+          onPressed: () {
+            Navigator.pushNamed(context, '/fill-email-reset-pass');
+          },
           child: Text(
             'Lupa kata sandi?',
             style: alertTextStyle.copyWith(
