@@ -49,6 +49,13 @@ class _DetailProductPageState extends State<DetailProductPage> {
     print('hai ini detail product page');
 
     var formatter = NumberFormat.decimalPattern('id');
+    num formattedSize;
+    var decimalNumber = widget.product.size % 1; //get decimal value (angka di belakang koma)
+    if(decimalNumber == 0) {
+      formattedSize = widget.product.size.toInt(); //remove .0
+    } else {
+      formattedSize = widget.product.size;
+    }
 
     Widget indicator(int index) {
       return Consumer<ProductProvider>(
@@ -195,14 +202,19 @@ class _DetailProductPageState extends State<DetailProductPage> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4,),
-                Text(
-                  'Rp ${formatter.format(widget.product.price)}',
-                  style: priceTextStyle.copyWith(
-                    fontWeight: semiBold,
-                    fontSize: 15,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                RichText(
+                  text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Rp ${formatter.format(widget.product.price)}',
+                          style: priceTextStyle.copyWith(fontWeight: semiBold, fontSize: 15),
+                        ),
+                        TextSpan(
+                          text: ' per $formattedSize kg/L',
+                          style: secondaryTextStyle.copyWith(fontSize: 13),
+                        )
+                      ]
+                  )
                 ),
                 const SizedBox(height: 20,),
                 Text(
