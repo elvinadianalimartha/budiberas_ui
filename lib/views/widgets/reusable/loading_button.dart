@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:skripsi_budiberas_9701/theme.dart';
 
 class LoadingButton extends StatelessWidget {
-  const LoadingButton({Key? key}) : super(key: key);
+  final String text;
+
+  const LoadingButton({
+    Key? key,
+    this.text = 'Memuat',
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity, //supaya selebar layar
-      child: TextButton(
+    return TextButton(
           onPressed: (){},
           style: TextButton.styleFrom(
             backgroundColor: btnColor,
@@ -24,7 +27,7 @@ class LoadingButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Memuat',
+                text,
                 style: whiteTextStyle.copyWith(
                     fontSize: 16,
                     fontWeight: medium
@@ -43,7 +46,6 @@ class LoadingButton extends StatelessWidget {
               ),
             ],
           )
-      ),
-    );
+      );
   }
 }
