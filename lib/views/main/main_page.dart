@@ -43,10 +43,10 @@ class _MainPageState extends State<MainPage> {
                 items: [
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 8, bottom: 8),
                           child: Image.asset(
                             'assets/icon_home.png',
-                            width: 21,
+                            width: 18,
                             color: pageProvider.currentIndex == 0 ? secondaryColor : secondaryTextColor,
                           )
                       ),
@@ -54,10 +54,10 @@ class _MainPageState extends State<MainPage> {
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 8, bottom: 8),
                           child: Image.asset(
                             'assets/icon_chat.png',
-                            width: 22,
+                            width: 19,
                             color: pageProvider.currentIndex == 1 ? secondaryColor : secondaryTextColor,
                           )
                       ),
@@ -65,28 +65,28 @@ class _MainPageState extends State<MainPage> {
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 8, bottom: 8),
                           child: Image.asset(
                             'assets/icon_cart.png',
-                            width: 20,
+                            width: 17,
                             color: pageProvider.currentIndex == 2 ? secondaryColor : secondaryTextColor,)
                       ),
                       label: 'Keranjang'
                   ),
                   BottomNavigationBarItem(
                       icon: Container(
-                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          margin: const EdgeInsets.only(top: 8, bottom: 8),
                           child: Image.asset(
                             'assets/icon_transaction.png',
-                            width: 20,
+                            width: 17,
                             color: pageProvider.currentIndex == 3 ? secondaryColor : secondaryTextColor,)
                       ),
                       label: 'Transaksi'
                   ),
                 ],
               selectedItemColor: secondaryColor,
-              selectedFontSize: 16,
-              unselectedFontSize: 14,
+              selectedFontSize: 14,
+              unselectedFontSize: 13,
               selectedLabelStyle: labelTextStyle,
               unselectedLabelStyle: secondaryTextStyle,
             ),
