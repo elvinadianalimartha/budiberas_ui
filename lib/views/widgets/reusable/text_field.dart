@@ -20,6 +20,7 @@ class TextFormFieldWidget extends StatefulWidget {
   final bool readOnly;
   final void Function(String text)? onChanged;
   final int maxLines;
+  final AutovalidateMode autoValidateMode;
 
   const TextFormFieldWidget({
     Key? key,
@@ -38,6 +39,7 @@ class TextFormFieldWidget extends StatefulWidget {
     this.readOnly = false,
     this.onChanged,
     this.maxLines = 1,
+    this.autoValidateMode = AutovalidateMode.onUserInteraction
   }) : super(key: key);
 
   @override
@@ -48,7 +50,7 @@ class _TextFormFieldWidgetState extends State<TextFormFieldWidget> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      autovalidateMode: AutovalidateMode.onUserInteraction,
+      autovalidateMode: widget.autoValidateMode,
       onChanged: widget.onChanged,
       readOnly: widget.readOnly,
       keyboardType: widget.textInputType,
