@@ -10,7 +10,6 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../providers/product_provider.dart';
 import '../theme.dart';
-import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
 class ShopByCategoryPage extends StatefulWidget {
   final CategoryModel category;
@@ -60,8 +59,6 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    constants.size = MediaQuery.of(context).size;
-
     sortPrice() {
       return Consumer<ProductProvider>(
           builder: (context, productProv, child) {
@@ -368,6 +365,21 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
       );
     }
 
+    //NOTE: ukuran
+    //==========================================================================
+    var size = MediaQuery.of(context).size;
+
+    /*24 is for notification bar on Android*/
+    final double itemHeightWithBtn = (size.height -  kToolbarHeight) / 2;
+    final double itemHeight = (size.height -  kToolbarHeight - 24) / 2;
+    final double itemWidth = size.width / 2;
+
+    double ratio1 = itemWidth/itemHeightWithBtn;
+    double ratio2 = 1.2;
+
+    double ratio3 = itemWidth/itemHeight;
+    //==========================================================================
+
     Widget activeProduct(List<ProductModel> listActiveProducts) {
       return GridView(
         padding: const EdgeInsets.only(
@@ -378,7 +390,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio1 : constants.ratio2,
+          childAspectRatio: itemWidth <= itemHeightWithBtn ? ratio1 : ratio2,
           crossAxisSpacing: 20,
           mainAxisSpacing: 20,
         ),
@@ -413,7 +425,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio3 : constants.ratio2,
+              childAspectRatio: itemWidth <= itemHeightWithBtn ? ratio3 : ratio2,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
