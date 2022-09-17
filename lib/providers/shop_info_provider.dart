@@ -25,6 +25,12 @@ class ShopInfoProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  List<ShippingRatesModel> rulesToGetFreeShip() {
+    var rule = _shippingRates.where(
+            (rate) => rate.shippingName.toLowerCase() == 'khusus').toList();
+    return rule;
+  }
+
   //============================================================================
   double distanceInKm = 0;
 
@@ -37,13 +43,18 @@ class ShopInfoProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  bool loadingGetShopInfo = false;
+
   Future<void> getShopInfo() async {
+    loadingGetShopInfo = true;
     try {
       ShopInfoModel shopInfo = await ShopInfoService().getShopInfo();
       _shopInfo = shopInfo;
     } catch (e) {
       print(e);
     }
+    loadingGetShopInfo = false;
+    notifyListeners();
   }
 
   Future<void> getShippingRates() async {
