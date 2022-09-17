@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import '../../models/message_model.dart';
 import '../../models/product_model.dart';
 import '../../providers/message_provider.dart';
 import '../../services/message_service.dart';
+import '../../services/notification_service.dart';
 import '../../theme.dart';
 import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
@@ -26,6 +28,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   late MessageProvider messageProvider;
   bool isLoadingSend = false;
+  TextEditingController messageController = TextEditingController(text: '');
 
   @override
   void initState() {
@@ -41,7 +44,6 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    TextEditingController messageController = TextEditingController(text: '');
     AuthProvider authProvider = Provider.of<AuthProvider>(context);
     var formatter = NumberFormat.decimalPattern('id');
 
@@ -56,6 +58,8 @@ class _ChatPageState extends State<ChatPage> {
         product: widget.product!,
         imageUrl: null,
       );
+      //save sent message utk dipanggil saat send notif
+      String sentMessage = messageController.text;
 
       //clear after send message
       setState(() {
@@ -64,6 +68,17 @@ class _ChatPageState extends State<ChatPage> {
         messageController.text = '';
       });
       messageProvider.resetToUninitialized();
+
+      //get fcm token owner
+      await context.read<AuthProvider>().getFcmTokenOwner();
+
+      if(context.read<AuthProvider>().fcmTokenOwner != null) {
+        NotificationService().sendFcm(
+          title: 'Ada pesan baru dari ${authProvider.user!.name}',
+          body: sentMessage,
+          fcmToken: context.read<AuthProvider>().fcmTokenOwner!
+        );
+      }
     }
 
     Widget productPreview() {
@@ -247,6 +262,21 @@ class _ChatPageState extends State<ChatPage> {
       );
     }
 
+    Future<void> seeMsg() async{
+      String docId = await MessageService().getDocId(authProvider.user!.id);
+      final query = await FirebaseFirestore.instance
+          .collection('messages')
+          .doc(docId)
+          .collection('messageContent')
+          .where('isFromUser', isEqualTo: false) //check chat dari pemilik toko yg belum di-read
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      query.docs.forEach((doc) {
+        doc.reference.update({'isRead': true});
+      });
+    }
+
     Widget content() {
       return StreamBuilder<List<MessageModel>>(
         stream: MessageService().getMessagesByUserId(authProvider.user!.id),
@@ -255,19 +285,23 @@ class _ChatPageState extends State<ChatPage> {
             if(snapshot.data!.isEmpty) {
               return emptyChat();
             }
-            return ListView(
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
               reverse: true,
               padding: EdgeInsets.symmetric(
                 horizontal: defaultMargin,
               ),
-              children: snapshot.data!.map(
-                (MessageModel message) => ChatBubble(
+              itemBuilder: (context, index) {
+                MessageModel message = snapshot.data![index];
+                seeMsg();
+                return ChatBubble(
                   isSender: message.isFromUser,
                   text: message.message,
                   product: message.product,
                   createdAt: message.createdAt,
-                )
-              ).toList(),
+                  isRead: message.isRead,
+                );
+              }
             );
           } else {
             return const Center(
