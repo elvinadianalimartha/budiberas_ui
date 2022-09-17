@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 
 class AuthProvider with ChangeNotifier{
   UserModel? _user;
@@ -161,6 +162,18 @@ class AuthProvider with ChangeNotifier{
     } catch (e) {
       print(e);
       return false;
+    }
+  }
+
+  String? fcmTokenOwner;
+
+  Future<void> getFcmTokenOwner() async {
+    try {
+      String token = await NotificationService().getFcmTokenOwner();
+      fcmTokenOwner = token;
+    }catch(e) {
+      print(e);
+      fcmTokenOwner = null;
     }
   }
 }
