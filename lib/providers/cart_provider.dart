@@ -87,7 +87,8 @@ class CartProvider with ChangeNotifier{
       .first.product.stockStatus = data['productStatus'];
 
       //Jika status produk tdk aktif, akan dihapus dari cartSelected/cart yg terpilih
-      //Sebaliknya, jika aktif kembali dan isSelected true, akan kembali ke cartSelected spy bisa otomatis menyesuaikan perhitungan totalnya
+      //Sebaliknya, jika aktif kembali dan isSelected true, akan kembali ke cartSelected
+      // spy bisa otomatis menyesuaikan perhitungan totalnya
       CartModel _updatedCart = _carts.where(
           (e) => e.product.id == productIdToUpdate
       ).first;
@@ -108,13 +109,20 @@ class CartProvider with ChangeNotifier{
     });
   }
 
-  Future<void> getCartsByUser(String token) async{
+  Future<void> getCartsByUser() async{
+    _carts = [];
     loadingGetCart = true;
     try {
-      List<CartModel> carts = await CartService().getCartsByUser(token);
+      List<CartModel> carts = await CartService().getCartsByUser();
       _carts = carts;
+      print('ada cart yg dipilih: ${_carts.any((e) => e.isSelected)}');
+      if(_carts.any((e) => e.isSelected) == false) {
+        _cartSelected = [];
+      }
     } catch (e) {
       print(e);
+      _carts = [];
+      _cartSelected = [];
     }
     loadingGetCart = false;
     notifyListeners();
@@ -329,5 +337,11 @@ class CartProvider with ChangeNotifier{
       print(e);
       return false;
     }
+  }
+
+  checkBack() {
+    _cartSelected = [];
+    _carts.removeWhere((e) => e.isSelected == true);
+    notifyListeners();
   }
 }

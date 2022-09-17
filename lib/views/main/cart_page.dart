@@ -9,7 +9,6 @@ import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 
 import '../../models/cart_model.dart';
-import '../../models/user_model.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/page_provider.dart';
 
@@ -19,8 +18,6 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  UserModel? userData;
-
   @override
   void initState() {
     getInit();
@@ -28,8 +25,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   getInit() async {
-    userData = Provider.of<AuthProvider>(context, listen: false).user;
-    await Provider.of<CartProvider>(context, listen: false).getCartsByUser(userData!.token!);
+    await Provider.of<CartProvider>(context, listen: false).getCartsByUser();
     Provider.of<CartProvider>(context, listen: false).initSelectedCartData();
     await Provider.of<CartProvider>(context, listen: false).pusherProductStatus();
   }
@@ -202,25 +198,6 @@ class _CartPageState extends State<CartPage> {
             ),
           ),
         ],
-      );
-    }
-
-    Future<void> dialogListSelectedCart(CartProvider cartProvider) async{
-      return showDialog(
-        context: context,
-        builder: (BuildContext context) => AlertDialog(
-          content: SizedBox(
-            height: 500,
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: cartProvider.cartSelected.map((e) =>
-                    Text('${e.product.name} | ${e.quantity} buah')
-                ).toList()
-              ),
-            ),
-          ),
-        )
       );
     }
 

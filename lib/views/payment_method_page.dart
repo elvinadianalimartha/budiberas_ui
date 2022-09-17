@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skripsi_budiberas_9701/models/midtrans_model.dart';
+import 'package:skripsi_budiberas_9701/providers/cart_provider.dart';
 import 'package:skripsi_budiberas_9701/providers/order_confirmation_provider.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/app_bar.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -62,6 +63,7 @@ class _PaymentMethodPageState extends State<PaymentMethodPage> {
 
     return WillPopScope(
       onWillPop: () {
+        context.read<CartProvider>().getCartsByUser();
         Navigator.of(context)
           ..pop()
           ..pop();

@@ -7,8 +7,10 @@ import 'package:http/http.dart' as http;
 class CartService{
   String baseUrl = constants.baseUrl;
 
-  Future<List<CartModel>> getCartsByUser(String token) async{
+  Future<List<CartModel>> getCartsByUser() async{
     var url = '$baseUrl/carts';
+    String token = await constants.getTokenUser();
+
     var headers = {
       'Content-Type': 'application/json',
       'Authorization': token,
