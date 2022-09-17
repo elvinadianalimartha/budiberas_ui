@@ -8,9 +8,10 @@ import 'package:skripsi_budiberas_9701/models/user_detail_model.dart';
 class TransactionService {
   String baseUrl = constants.baseUrl;
 
-  Future<List<TransactionModel>> getTransactionHistory({
+  Future getTransactionHistory({
     required String token,
-    String? searchQuery
+    String? searchQuery,
+    required int page,
   }) async {
     var url = '$baseUrl/transactions';
     var headers = {
@@ -20,6 +21,7 @@ class TransactionService {
 
     Map<String, dynamic> qParams = {
       'searchQuery': searchQuery?.toLowerCase(),
+      'page': page.toString(),
     };
 
     var response = await http.get(
@@ -31,11 +33,17 @@ class TransactionService {
 
     if(response.statusCode == 200) {
       List data = jsonDecode(response.body)['data']['data'];
-      List<TransactionModel> transactions = [];
+      int totalPageNumber = jsonDecode(response.body)['data']['last_page'];
 
+      List<TransactionModel> transactionData = [];
       for(var item in data) {
-        transactions.add(TransactionModel.fromJson(item));
+        transactionData.add(TransactionModel.fromJson(item));
       }
+
+      Map<String, dynamic> transactions = {
+        'data': transactionData,
+        'totalPage': totalPageNumber
+      };
 
       return transactions;
     } else {
@@ -70,12 +78,14 @@ class TransactionService {
   }
 
   Future<bool> checkPickupCode({
+    required String token,
     required int transactionId,
     required String inputCode,
   }) async {
     var url = '$baseUrl/checkPickupCode/$transactionId';
     var headers = {
       'Content-Type': 'application/json',
+      'Authorization': token,
     };
     var body = jsonEncode({
       'pickup_code': inputCode,
@@ -97,6 +107,7 @@ class TransactionService {
   }
 
   Future<bool> updateStatus({
+    required String token,
     required int transactionId,
     required String newStatus,
   }) async {
@@ -104,6 +115,7 @@ class TransactionService {
 
     var headers = {
       'Content-Type': 'application/json',
+      'Authorization': token,
     };
 
     var body = jsonEncode({

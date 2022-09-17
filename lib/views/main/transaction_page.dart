@@ -17,27 +17,47 @@ class TransactionPage extends StatefulWidget {
 class _TransactionPageState extends State<TransactionPage> {
   TextEditingController searchController = TextEditingController(text: '');
   bool searchStatusFilled = false;
+  String? searchQuery;
+  final controller = ScrollController();
+  late TransactionProvider transactionProvider;
 
   @override
   void initState() {
     super.initState();
+    transactionProvider = Provider.of<TransactionProvider>(context, listen: false);
     getInit();
+    controller.addListener(() {
+      if(controller.offset >= controller.position.maxScrollExtent && !controller.position.outOfRange) {
+        if(transactionProvider.endPage > 1) {
+          transactionProvider.getNextPageTransaction(searchQuery: searchQuery);
+        }
+      }
+    });
   }
 
   getInit() async {
-    await Provider.of<TransactionProvider>(context, listen: false).getTransactionHistory(searchQuery: null);
-    await Provider.of<TransactionProvider>(context, listen: false).pusherTransactionHistory();
+    await transactionProvider.getTransactionHistory(searchQuery: null);
+    await transactionProvider.pusherTransactionHistory();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    controller.dispose();
+    transactionProvider.disposePage();
   }
 
   @override
   Widget build(BuildContext context) {
     void clearSearch() {
+      searchQuery = null;
       searchController.clear();
       searchStatusFilled = false;
       setState(() {
         searchStatusFilled = false;
       });
       context.read<TransactionProvider>().getTransactionHistory(searchQuery: null);
+      context.read<TransactionProvider>().disposePage();
     }
 
     Widget search() {
@@ -70,14 +90,17 @@ class _TransactionPageState extends State<TransactionPage> {
             : null,
           ),
           onFieldSubmitted: (value) {
+            context.read<TransactionProvider>().disposePage();
             context.read<TransactionProvider>().getTransactionHistory(searchQuery: value);
             if(value.isNotEmpty) {
               setState(() {
                 searchStatusFilled = true;
+                searchQuery = value;
               });
             } else {
               setState(() {
                 searchStatusFilled = false;
+                searchQuery = null;
               });
             }
           },
@@ -110,6 +133,32 @@ class _TransactionPageState extends State<TransactionPage> {
       );
     }
 
+    Widget historyData(TransactionProvider data) {
+      return ListView.builder(
+        controller: controller,
+        shrinkWrap: true,
+        itemCount: data.transactions.length + 1,
+        itemBuilder: (context, index) {
+          if(index < data.transactions.length) {
+            TransactionModel transactions = data.transactions[index];
+            return TransactionCard(transactions: transactions);
+          } else {
+            return data.noMoreData
+              ? const SizedBox()
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20.0),
+                    child: Text(
+                      'Memuat lebih banyak...',
+                      style: greyTextStyle.copyWith(fontSize: 14),
+                    ),
+                  ),
+                );
+          }
+        },
+      );
+    }
+
     Widget content() {
       return Column(
         children: [
@@ -122,14 +171,7 @@ class _TransactionPageState extends State<TransactionPage> {
                           ? loadingWidget()
                           : data.transactions.isEmpty
                               ? emptyDataWidget()
-                              : ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: data.transactions.length,
-                                  itemBuilder: (context, index) {
-                                    TransactionModel transactions = data.transactions[index];
-                                    return TransactionCard(transactions: transactions);
-                                  },
-                                )
+                              : historyData(data)
                   );
                 },
               )

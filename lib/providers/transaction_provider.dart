@@ -32,19 +32,60 @@ class TransactionProvider with ChangeNotifier{
     notifyListeners();
   }
 
+  int endPage = 1;
+
   Future<void> getTransactionHistory({
     String? searchQuery
   }) async{
     loadingGetData = true;
     try {
-      List<TransactionModel> transactions = await TransactionService().getTransactionHistory(token: _user!.token!, searchQuery: searchQuery);
-      _transactions = transactions;
+      var transactions = await TransactionService().getTransactionHistory(token: _user!.token!, searchQuery: searchQuery, page: 1);
+      List<TransactionModel> transactionData = transactions['data'];
+      _transactions = transactionData;
+      endPage = transactions['totalPage'];
+      if(endPage == 1) {
+        noMoreData = true;
+      }
     } catch (e) {
       print(e);
       _transactions = [];
     }
     loadingGetData = false;
     notifyListeners();
+  }
+
+  //=========================== PAGINATION =====================================
+  int currentPage = 2;
+  bool noMoreData = false;
+
+  Future<void> getNextPageTransaction({
+    String? searchQuery
+  }) async{
+    //loadingNextPageHistory = true;
+
+    if(currentPage > endPage) {
+      print('end of data');
+      noMoreData = true;
+    } else {
+      try {
+        var transactions = await TransactionService().getTransactionHistory(token: _user!.token!, searchQuery: searchQuery, page: currentPage);
+
+        List<TransactionModel> transactionData = transactions['data'];
+        //endPage = transactions['totalPage'];
+        _transactions.addAll(transactionData);
+        currentPage += 1;
+      } catch (e) {
+        print(e);
+      }
+    }
+    //loadingNextPageHistory = false;
+    notifyListeners();
+  }
+
+  disposePage() {
+    currentPage = 2;
+    endPage = 1;
+    noMoreData = false;
   }
 
   UserDetailModel? _orderReceiver;
