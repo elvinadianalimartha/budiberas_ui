@@ -10,7 +10,6 @@ import '../../providers/product_provider.dart';
 import '../../theme.dart';
 import '../widgets/product_inactive_card.dart';
 import '../widgets/reusable/direct_to_auth_dialog.dart';
-import 'package:skripsi_budiberas_9701/constants.dart' as constants;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -49,8 +48,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    constants.size = MediaQuery.of(context).size;
-
     void clearSearch() {
       searchController.clear();
       _statusFilled = false;
@@ -302,6 +299,21 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
+    //NOTE: ukuran
+    //==========================================================================
+    var size = MediaQuery.of(context).size;
+
+    /*24 is for notification bar on Android*/
+    final double itemHeightWithBtn = (size.height -  kToolbarHeight) / 2;
+    final double itemHeight = (size.height -  kToolbarHeight - 24) / 2;
+    final double itemWidth = size.width / 2;
+
+    double ratio1 = itemWidth/itemHeightWithBtn;
+    double ratio2 = 1.2;
+
+    double ratio3 = itemWidth/itemHeight;
+    //==========================================================================
+
     Widget product() {
       return Consumer<ProductProvider>(
         builder: (context, data, child) {
@@ -314,7 +326,7 @@ class _HomePageState extends State<HomePage> {
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio1 : constants.ratio2,
+              childAspectRatio: itemWidth <= itemHeightWithBtn ? ratio1 : ratio2,
               crossAxisSpacing: 20,
               mainAxisSpacing: 20,
             ),
@@ -353,7 +365,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: constants.itemWidth <= constants.itemHeightWithBtn ? constants.ratio3 : constants.ratio2,
+                  childAspectRatio: itemWidth <= itemHeightWithBtn ? ratio3 : ratio2,
                   crossAxisSpacing: 20,
                   mainAxisSpacing: 20,
                 ),
