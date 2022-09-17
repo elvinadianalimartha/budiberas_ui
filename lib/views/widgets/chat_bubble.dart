@@ -13,12 +13,14 @@ class ChatBubble extends StatelessWidget {
   final bool isSender; //if true, berarti pengirim. if false penerima
   final ProductModel? product;
   final DateTime createdAt;
+  final bool isRead;
 
   ChatBubble({
     this.isSender = false,
     this.text = '',
     this.product,
     required this.createdAt,
+    required this.isRead,
   });
 
   @override
@@ -116,17 +118,34 @@ class ChatBubble extends StatelessWidget {
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                     children: [
                       Text(
                         text,
                         style: primaryTextStyle,
                       ),
-                      SizedBox(height: 6,),
-                      Text(
-                        formattedDate,
-                        style: isSender ? priceTextStyle.copyWith(fontSize: 11) : secondaryTextStyle.copyWith(fontSize: 11),
-                      ),
+                      const SizedBox(height: 6,),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            formattedDate,
+                            style: isSender ? priceTextStyle.copyWith(fontSize: 11) : secondaryTextStyle.copyWith(fontSize: 11),
+                          ),
+                          isSender
+                              ? isRead
+                              ? Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Icon(Icons.check_circle, color: secondaryColor, size: 18,),
+                          )
+                              : Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Icon(Icons.check_circle, color: secondaryTextColor, size: 18,),
+                          )
+                              : const SizedBox()
+                        ],
+                      )
                     ],
                   ),
                 ),
