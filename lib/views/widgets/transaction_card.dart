@@ -8,7 +8,7 @@ import 'package:skripsi_budiberas_9701/views/pickup_confirmation_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/image_builder.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/trans_update_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_status_label.dart';
-import 'package:skripsi_budiberas_9701/views/widgets/transaction_detail_delivery.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/transaction_detail.dart';
 
 import '../../theme.dart';
 
@@ -172,9 +172,7 @@ class TransactionCard extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        if(transactions.shippingType.toLowerCase() == 'pesan antar') {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => TransactionDetailDelivery(transactions: transactions,)));
-        }
+        Navigator.push(context, MaterialPageRoute(builder: (context) => TransactionDetail(transactions: transactions,)));
       },
       child: Container(
         padding: const EdgeInsets.all(20),
