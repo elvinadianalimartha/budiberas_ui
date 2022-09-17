@@ -32,30 +32,24 @@ class ProfilePage extends StatelessWidget {
               fontSize: 16,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Data Diri',
-                  style: primaryTextStyle,
+          InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, '/change-password');
+            },
+            child: Ink(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Ubah Kata Sandi',
+                      style: primaryTextStyle,
+                    ),
+                    Icon(Icons.chevron_right, color: secondaryTextColor,)
+                  ],
                 ),
-                Icon(Icons.chevron_right, color: secondaryTextColor,)
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Ubah Kata Sandi',
-                  style: primaryTextStyle,
-                ),
-                Icon(Icons.chevron_right, color: secondaryTextColor,)
-              ],
+              ),
             ),
           ),
           InkWell(
@@ -150,13 +144,13 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: primaryColor,
-        toolbarHeight: 100,
+        toolbarHeight: 90,
         centerTitle: true,
         title: Container(
           color: primaryColor,
           child: Row(
             children: [
-              Image.asset('assets/profile_image.png', width: 65,),
+              Image.asset('assets/profile_image.png', width: 50,),
               const SizedBox(width: 16,),
               Flexible(
                 child: Column(
@@ -167,7 +161,7 @@ class ProfilePage extends StatelessWidget {
                       '${user?.name}',
                       style: whiteTextStyle.copyWith(
                         fontWeight: semiBold,
-                        fontSize: 20,
+                        fontSize: 16
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -176,7 +170,7 @@ class ProfilePage extends StatelessWidget {
                     Text(
                       '${user?.email}',
                       style: whiteTextStyle.copyWith(
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
