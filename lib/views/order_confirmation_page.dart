@@ -10,9 +10,8 @@ import 'package:skripsi_budiberas_9701/providers/user_detail_provider.dart';
 import 'package:skripsi_budiberas_9701/views/payment_method_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/address_page.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/btn_with_icon.dart';
-import 'package:skripsi_budiberas_9701/views/widgets/reusable/cancel_button.dart';
-import 'package:skripsi_budiberas_9701/views/widgets/reusable/done_button.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/loading_button.dart';
+import 'package:skripsi_budiberas_9701/views/widgets/reusable/order_confirm_widget.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/selected_cart_card.dart';
 
 import '../models/cart_model.dart';
@@ -60,144 +59,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
   @override
   Widget build(BuildContext context) {
 
-    //==================== REUSABLE WIDGET FOR THIS PAGE =======================
-    Widget changeBtn({
-      required VoidCallback onTap,
-      required String textData,
-    }) {
-      return InkWell(
-        onTap: onTap,
-        splashColor: fourthColor.withOpacity(0.4),
-        borderRadius: BorderRadius.circular(12),
-        child: Ink(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: thirdColor,
-            ),
-          ),
-          child: Text(
-            textData,
-            style: priceTextStyle,
-          ),
-        ),
-      );
-    }
-
-    Widget shippingField({
-      required Widget iconData,
-      required String typeName,
-      required List<Widget> listNotes,
-      required VoidCallback onTap,
-      required String labelBtn,
-    }) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 10, bottom: 12, left: 20, right: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: thirdColor,
-                  ),
-                  padding: const EdgeInsets.all(6),
-                  child: iconData,
-                ),
-                const SizedBox(width: 20,),
-                Expanded(
-                  child: Text(
-                    typeName,
-                    style: primaryTextStyle.copyWith(
-                      fontSize: 15,
-                      fontWeight: semiBold,
-                    ),
-                  ),
-                ),
-                changeBtn(
-                  onTap: onTap,
-                  textData: labelBtn
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 50.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: listNotes,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    Future<void> dialogChangePickupMethod({
-      required String imagePath,
-      required String question,
-      required TextSpan subtitles,
-      required VoidCallback onCancelClick,
-      required VoidCallback onDoneClick,
-      required String textOnDoneBtn,
-    }) async{
-      return showDialog(
-          context: context,
-          builder: (BuildContext context) => AlertDialog(
-            insetPadding: const EdgeInsets.all(40),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20)
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(imagePath, width: 90,),
-                  const SizedBox(height: 12,),
-                  Text(
-                    question,
-                    style: primaryTextStyle.copyWith(fontWeight: semiBold),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12,),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: subtitles,
-                  ),
-                  const SizedBox(height: 20,),
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        CancelButton(
-                          onClick: onCancelClick,
-                          text: 'Batal',
-                          fontSize: 14,
-                        ),
-                        const SizedBox(width: 16,),
-                        DoneButton(
-                          onClick: onDoneClick,
-                          text: textOnDoneBtn,
-                          fontSize: 14,
-                        ),
-                      ]
-                  )
-                ],
-              ),
-            ),
-          )
-      );
-    }
-    //==========================================================================
-
     Widget addressField() {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: shippingField(
+        child: OrderConfirmWidget().shippingField(
           labelBtn: 'Ganti alamat',
           iconData: const Icon(Icons.location_on_rounded, size: 20, color: Colors.white,),
           typeName: 'Alamat Pengiriman',
@@ -221,17 +86,18 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               overflow: TextOverflow.ellipsis,
             )
           ],
-          onTap: () {
+          onBtnTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const AddressPage(isFromConfirmationPage: true)));
           },
         ),
       );
     }
 
+    //======================== SHIPPING TYPE ====================================
     Widget selfPickup() {
       return Padding(
         padding: const EdgeInsets.only(top: 6),
-        child: shippingField(
+        child: OrderConfirmWidget().shippingField(
           labelBtn: 'Ganti metode',
           iconData: const Icon(Icons.directions_walk, size: 20, color: Colors.white,),
           typeName: 'Ambil Mandiri',
@@ -262,8 +128,9 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               }
             ),
           ],
-          onTap: () {
-            dialogChangePickupMethod(
+          onBtnTap: () {
+            OrderConfirmWidget().dialogChangePickupMethod(
+                buildContext: context,
                 imagePath: 'assets/delivery_img.png',
                 question: 'Ganti metode jadi pesan antar?',
                 subtitles: TextSpan(
@@ -277,9 +144,9 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                   Navigator.pop(context);
                 },
                 textOnDoneBtn: 'Ya, pesan antar',
-                onCancelClick: () { 
+                onCancelClick: () {
                   Navigator.pop(context);
-                }
+                },
             );
           },
         ),
@@ -289,7 +156,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
     Widget delivery() {
       return Consumer2<ShopInfoProvider, UserDetailProvider>(
         builder: (context, shopInfoProv, userDetailProv, child) {
-          return shippingField(
+          return OrderConfirmWidget().shippingField(
             labelBtn: 'Ganti metode',
             iconData: Image.asset('assets/delivery_icon.png', width: 18, color: Colors.white,),
             typeName: 'Pesan Antar',
@@ -310,15 +177,24 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4,),
-              Text(
-                'Baca S & K untuk dapat gratis ongkir', //nanti ini pakai rich text
-                style: primaryTextStyle,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              InkWell(
+                onTap: () {
+                  OrderConfirmWidget().showDialogSpecialShipRules(
+                      buildContext: context,
+                      shopInfoProvider: shopInfoProv
+                  );
+                },
+                child: Text(
+                  'Baca S & K untuk dapat diskon/gratis ongkir',
+                  style: primaryTextStyle.copyWith(decoration: TextDecoration.underline),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
-            onTap: () {
-              dialogChangePickupMethod(
+            onBtnTap: () {
+              OrderConfirmWidget().dialogChangePickupMethod(
+                  buildContext: context,
                   imagePath: 'assets/self_pickup.png',
                   question: 'Ganti metode jadi ambil mandiri?',
                   subtitles: TextSpan(
@@ -355,6 +231,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         }
       );
     }
+    //==========================================================================
 
     Widget listOrder() {
       return Padding(
@@ -433,9 +310,10 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
                     )
                   ],
                 ),
-                const SizedBox(height: 8,),
-                const Divider(height: 2,),
-                const SizedBox(height: 8,),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: Divider(height: 2,),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -486,6 +364,14 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
         Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentMethodPage(
             transactionToken: transToken,
         )));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Konfirmasi pesanan gagal dilakukan!\nCek koneksi internet Anda'),
+              backgroundColor: alertColor,
+              duration: const Duration(milliseconds: 1500),
+            )
+        );
       }
 
       setState(() {
@@ -508,7 +394,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
       ),
       body: Consumer2<UserDetailProvider, OrderConfirmationProvider>(
         builder: (context, userDetailProv, orderConfirmProv, child) {
-          if(userDetailProv.defaultUserDetail == null || shopInfoProvider.shopInfo == null || orderConfirmProv.loadingGetData) {
+          if(userDetailProv.defaultUserDetail == null || shopInfoProvider.loadingGetShopInfo || orderConfirmProv.loadingGetSelectedCarts) {
             return loadingProgress();
           } else {
             return ListView(
@@ -541,6 +427,7 @@ class _OrderConfirmationPageState extends State<OrderConfirmationPage> {
               text: 'Bayar',
               onClick: () {
                 handleCheckout();
+                //Navigator.push(context, MaterialPageRoute(builder: (context) => const CekPage()));
               },
             ),
         ),
