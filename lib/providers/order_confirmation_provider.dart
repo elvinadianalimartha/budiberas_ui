@@ -22,17 +22,17 @@ class OrderConfirmationProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  bool loadingGetData = false;
+  bool loadingGetSelectedCarts = false;
 
   Future<void> getSelectedCarts() async {
-    loadingGetData = true;
+    loadingGetSelectedCarts = true;
     try {
       List<CartModel> selectedCarts = await CartService().getSelectedCart(token: _user!.token!);
       _selectedCartsFromServer = selectedCarts;
     } catch (e) {
       print(e);
     }
-    loadingGetData = false;
+    loadingGetSelectedCarts = false;
     notifyListeners();
   }
 
