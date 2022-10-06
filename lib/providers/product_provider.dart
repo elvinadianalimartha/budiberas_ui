@@ -49,18 +49,37 @@ class ProductProvider with ChangeNotifier{
     _searchQuery = '';
   }
 
-  Future<void> getProducts() async{
+  Future<void> getProducts({
+    int? categoryId,
+    String? search,
+  }) async{
     loading = true;
     try{
-      List<ProductModel> products = await ProductService().getProducts();
+      List<ProductModel> products = await ProductService().getProducts(
+        categoryId: shopByCategoryId,
+        search: search,
+        size: selectedFilterSize,
+        riceChar: selectedFilterRiceChar,
+        sortByPrice: selectedSortByPrice
+      );
       _products = products;
     }catch(e) {
       print(e);
+      _products = [];
     }
     loading = false;
     notifyListeners();
   }
 
+  //============================================================================
+
+  int? shopByCategoryId;
+  setCategoryId(int categoryId) {
+    shopByCategoryId = categoryId;
+    notifyListeners();
+  }
+
+  //============================================================================
   Future<void> pusherProductStatus() async {
     PusherClient pusher;
     Channel channel;
@@ -83,44 +102,18 @@ class ProductProvider with ChangeNotifier{
     notifyListeners();
   }
 
-  //============================= PRODUCT BY CATEGORY ==========================
-  List<ProductModel> _productByCategory = [];
-  String _searchQueryOnCategory = '';
-
-  List<ProductModel> get productByCategory => _searchQueryOnCategory.isEmpty
-      ? _productByCategory
-      : _productByCategory.where((e) => e.name.toLowerCase().contains(_searchQueryOnCategory)).toList();
-
-  set productByCategory(List<ProductModel> value) {
-    _productByCategory = value;
-    notifyListeners();
-  }
-
-  setProductByCategory(int categoryId) {
-    _productByCategory = _products.where((e) => e.category.id == categoryId).toList();
-  }
-
-  //======================= SEARCH PRODUCT BY CATEGORY =========================
-  void searchProductByCategory(String query) {
-    _searchQueryOnCategory = query.toLowerCase();
-    notifyListeners();
-  }
-
-  void disposeSearchByCategory() {
-    _searchQueryOnCategory = '';
-  }
-
   //============================== CLEAR FILTER ================================
-  disposeFilter() {
+  disposeCategoryAndFilter() {
+    shopByCategoryId = null;
+
+    setSizeDone = false;
     sizes = [];
     characteristics = [];
 
-    selectedFilterSize = [];
-    selectedFilterRiceChar = [];
+    selectedFilterSize.clear();
+    selectedFilterRiceChar.clear();
 
-    _productMeetFilter = [];
-
-    selectedPriceSort = null;
+    selectedSortByPrice = null;
   }
 
   uncheckFilter() {
@@ -130,25 +123,25 @@ class ProductProvider with ChangeNotifier{
     for(var size in sizes) {
       size.value = false;
     }
-    selectedFilterSize = [];
-    selectedFilterRiceChar = [];
-    _productMeetFilter = [];
-    selectedPriceSort = null;
+    selectedFilterSize.clear();
+    selectedFilterRiceChar.clear();
+    selectedSortByPrice = null;
     notifyListeners();
   }
 
   //================ SET SIZE LIST FILTER (BASED ON CATEGORY) ================
   List<CheckboxFilterState> sizes = [];
+  bool setSizeDone = false;
 
   filterSizeProduct() {
     //product by category take ukuran, group by
-    for (var product in _productByCategory) {
+    for (var product in _products) {
       bool isSizeExist = sizes.any((e) => e.title == product.size);
       if(!isSizeExist) {
         sizes.add(CheckboxFilterState(title: product.size));
       }
     }
-    print(sizes);
+    setSizeDone = true;
   }
 
   //================ SET RICE CHARACTERISTICS FILTER ========================
@@ -162,31 +155,16 @@ class ProductProvider with ChangeNotifier{
   }
 
   //========================== SET PRICE SORTING =============================
-  int? selectedPriceSort;
+  int? selectedSortByPrice;
 
-  void changeDefaultVal(int value) {
-    selectedPriceSort = value;
-    notifyListeners();
-  }
-
-  sortByPrice() {
-    //dari yg termurah
-    if(selectedPriceSort == 1) {
-      _productByCategory.sort((a, b) => a.price.compareTo(b.price));
-      _productMeetFilter.sort((a, b) => a.price.compareTo(b.price));
-    }
-
-    //dari yg termahal
-    if(selectedPriceSort == 0) {
-      _productByCategory.sort((b, a) => a.price.compareTo(b.price));
-      _productMeetFilter.sort((b, a) => a.price.compareTo(b.price));
-    }
+  void changeSortVal(int value) {
+    selectedSortByPrice = value;
     notifyListeners();
   }
 
   //********************* SELECT FILTER (Checkbox Clicked) *******************
-  List selectedFilterSize = [];
-  List selectedFilterRiceChar = [];
+  List<double> selectedFilterSize = [];
+  List<String> selectedFilterRiceChar = [];
 
   addFilterSize(double size) {
     selectedFilterSize.add(size);
@@ -195,7 +173,6 @@ class ProductProvider with ChangeNotifier{
 
   removeFilterSize(double size) {
     selectedFilterSize.remove(size);
-    _productMeetFilter.removeWhere((e) => e.size == size);
     notifyListeners();
   }
 
@@ -206,76 +183,6 @@ class ProductProvider with ChangeNotifier{
 
   removeFilterRice(String char) {
     selectedFilterRiceChar.remove(char);
-    _productMeetFilter.removeWhere((e) => e.description.toLowerCase().contains(char.toLowerCase()));
-    notifyListeners();
-  }
-
-  //================ SET PRODUCT LIST THAT MEET SELECTED FILTERS ===============
-  List<ProductModel> _productMeetFilter = [];
-
-  List<ProductModel> get productMeetFilter => _searchQueryOnCategory.isEmpty
-      ? _productMeetFilter
-      : _productMeetFilter.where((e) => e.name.toLowerCase().contains(_searchQueryOnCategory)).toList();
-
-  set productMeetFilter(List<ProductModel> value) {
-    _productMeetFilter = value;
-    notifyListeners();
-  }
-
-  checkProductMeetFilter() {
-    isExistRiceInList(dynamic filterRice) {
-      bool isExistRice = _productMeetFilter.any((e) => e.description.toLowerCase().contains(filterRice.toLowerCase()));
-      return isExistRice;
-    }
-
-    isExistSizeInList(dynamic filterSize) {
-      bool isExistSize = _productMeetFilter.any((e) => e.size == filterSize);
-      return isExistSize;
-    }
-
-    if(selectedFilterRiceChar.isNotEmpty && selectedFilterSize.isNotEmpty) {
-      _productMeetFilter = [];
-      for (var filterRice in selectedFilterRiceChar) {
-        bool isExistRice = isExistRiceInList(filterRice);
-
-        for (var filterSize in selectedFilterSize) {
-          bool isExistSize = isExistSizeInList(filterSize);
-
-          if (!isExistRice && !isExistSize) {
-            _productMeetFilter = _productMeetFilter + _productByCategory
-                .where((e) => e.description.toLowerCase().contains(filterRice.toLowerCase()) && e.size == filterSize)
-                .toList();
-          }
-        }
-      }
-    }
-
-    if(selectedFilterSize.isEmpty) {
-      if(selectedFilterRiceChar.isNotEmpty) {
-        _productMeetFilter = [];
-        for(var filterRice in selectedFilterRiceChar) {
-          bool isExistRice = isExistRiceInList(filterRice);
-
-          if(!isExistRice) {
-            _productMeetFilter = _productMeetFilter + _productByCategory
-                .where((e) => e.description.toLowerCase().contains(filterRice.toLowerCase())).toList();
-          }
-        }
-      }
-    }
-
-    if(selectedFilterRiceChar.isEmpty) {
-      if(selectedFilterSize.isNotEmpty) {
-        _productMeetFilter = [];
-        for(var filterSize in selectedFilterSize) {
-          bool isExistSize = isExistSizeInList(filterSize);
-
-          if(!isExistSize) {
-            _productMeetFilter = _productMeetFilter + _productByCategory.where((e) => e.size == filterSize).toList();
-          }
-        }
-      }
-    }
     notifyListeners();
   }
 }

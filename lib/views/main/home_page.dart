@@ -245,8 +245,16 @@ class _HomePageState extends State<HomePage> {
                       return InkWell(
                         splashColor: fourthColor,
                         onTap: () {
-                          productProv.setProductByCategory(data.categories[index].id);
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => ShopByCategoryPage(category: data.categories[index],)));
+                          //set category id
+                          productProv.setCategoryId(data.categories[index].id);
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => ShopByCategoryPage(category: data.categories[index],)))
+                            .then((_) {
+                              setState(() {
+                                productProvider.disposeSearch();
+                                productProvider.disposeCategoryAndFilter();
+                                productProvider.getProducts();
+                              });
+                            });
                         },
                         child: Ink(
                           padding: const EdgeInsets.symmetric(

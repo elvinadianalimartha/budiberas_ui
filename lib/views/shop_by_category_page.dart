@@ -36,6 +36,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
   }
 
   getInit() async {
+    await productProvider.getProducts();
     productProvider.filterSizeProduct();
     productProvider.filterRiceCharacteristics();
   }
@@ -43,8 +44,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
   @override
   void dispose() {
     super.dispose();
-    productProvider.disposeFilter();
-    productProvider.disposeSearchByCategory();
+    productProvider.disposeCategoryAndFilter();
   }
 
   resetFilter() {
@@ -54,7 +54,11 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
   void clearSearch() {
     searchController.clear();
     _statusFilled = false;
-    productProvider.searchProductByCategory('');
+    productProvider.searchProduct('');
+    //mengatur ulang data setelah clear search
+    if(productProvider.selectedFilterSize.isNotEmpty || productProvider.selectedFilterRiceChar.isNotEmpty) {
+      productProvider.getProducts(search: null);
+    }
   }
 
   @override
@@ -81,9 +85,9 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                           child: RadioListTile<int>(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 0),
                             value: 1,
-                            groupValue: productProv.selectedPriceSort,
+                            groupValue: productProv.selectedSortByPrice,
                             onChanged: (value) {
-                              productProv.changeDefaultVal(value!);
+                              productProv.changeSortVal(value!);
                             },
                             title: Text('Termurah', style: primaryTextStyle.copyWith(fontSize: 14),),
                             activeColor: priceColor,
@@ -92,10 +96,10 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                         Flexible(
                           child: RadioListTile<int>(
                             contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                            value: 0,
-                            groupValue: productProv.selectedPriceSort,
+                            value: 2,
+                            groupValue: productProv.selectedSortByPrice,
                             onChanged: (value) {
-                              productProv.changeDefaultVal(value!);
+                              productProv.changeSortVal(value!);
                             },
                             title: Text('Termahal', style: primaryTextStyle.copyWith(fontSize: 14)),
                             activeColor: priceColor,
@@ -275,13 +279,10 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                   child: DoneButton(
                     text: 'Terapkan Filter',
                     onClick: () {
-                      productProvider.checkProductMeetFilter();
-                      if(productProvider.selectedPriceSort != null) {
-                        productProvider.sortByPrice();
-                      }
+                      setState(() {
+                        productProvider.getProducts(search: searchController.text);
+                      });
                       Navigator.pop(context);
-                      print(productProvider.selectedFilterRiceChar.map((e) => e as String).toList());
-                      print(productProvider.productMeetFilter);
                     },
                   ),
                 ),
@@ -353,7 +354,7 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
                     : null,
               ),
               onChanged: (value) { //onChanged atau onSubmitted enaknya?
-                productProvider.searchProductByCategory(value);
+                productProvider.searchProduct(value);
                 if(value.isNotEmpty) {
                   _statusFilled = true;
                 } else {
@@ -463,103 +464,62 @@ class _ShopByCategoryPageState extends State<ShopByCategoryPage> {
       );
     }
 
-    Widget filteredProductNotFound() {
-      return Center(
-        child: Column(
-          children: [
-            const SizedBox(height: 50,),
-            Image.asset('assets/empty-icon.png', width: MediaQuery.of(context).size.width - (15 * defaultMargin),),
-            const SizedBox(height: 10,),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Mohon maaf, produk yang Anda filter tidak ditemukan',
-                    style: primaryTextStyle.copyWith(
-                        fontWeight: medium,
-                        fontSize: 15
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      resetFilter();
-                    },
-                    child: Text(
-                      'Reset Filter',
-                      style: orderNotesTextStyle.copyWith(fontSize: 16, decoration: TextDecoration.underline),
-                    )
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 20,),
-          ],
+    Widget allProducts() {
+      return Column(
+        children: [
+          productProvider.products.any(
+                  (e) => e.stockStatus.toLowerCase() == 'aktif'
+          ) ? activeProduct(productProvider.products) : const SizedBox(),
+          productProvider.products.any(
+                  (e) => e.stockStatus.toLowerCase() == 'tidak aktif'
+          ) ? nonActiveProduct(productProvider.products) : const SizedBox(),
+        ],
+      );
+    }
+
+    Widget loadingWidget() {
+      return const Padding(
+        padding: EdgeInsets.only(top: 80.0),
+        child: Center(
+          child: CircularProgressIndicator(),
         ),
       );
     }
 
-    Widget allProducts() {
-      return Column(
-        children: [
-          productProvider.productByCategory.any(
-                  (e) => e.stockStatus.toLowerCase() == 'aktif'
-          ) ? activeProduct(productProvider.productByCategory) : const SizedBox(),
-          productProvider.productByCategory.any(
-                  (e) => e.stockStatus.toLowerCase() == 'tidak aktif'
-          ) ? nonActiveProduct(productProvider.productByCategory) : const SizedBox(),
-        ],
-      );
-    }
-
-    Widget filteredProducts() {
-      return Column(
-        children: [
-          productProvider.productMeetFilter.any(
-                  (e) => e.stockStatus.toLowerCase() == 'aktif'
-          ) ? activeProduct(productProvider.productMeetFilter) : const SizedBox(),
-          productProvider.productMeetFilter.any(
-                  (e) => e.stockStatus.toLowerCase() == 'tidak aktif'
-          ) ? nonActiveProduct(productProvider.productMeetFilter) : const SizedBox(),
-        ],
-      );
-    }
-
-    Widget content(ProductProvider productProvider) {
-      return productProvider.selectedFilterSize.isEmpty && productProvider.selectedFilterRiceChar.isEmpty
-        ? allProducts()
-        : productProvider.productMeetFilter.isEmpty
-          ? filteredProductNotFound()
-          : filteredProducts();
-    }
-
-    return Scaffold(
-      appBar: customAppBar(text: 'Produk Kategori ${widget.category.categoryName}'),
-      body: SingleChildScrollView(
-          child: Consumer<ProductProvider>(
-            builder: (context, productProvider, child) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      children: [
-                        filterBtn(),
-                        const SizedBox(width: 16,),
-                        Flexible(child: search())
-                      ],
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.pop(context);
+        return Future.value(false);
+      },
+      child: Scaffold(
+        appBar: customAppBar(text: 'Produk Kategori ${widget.category.categoryName}'),
+        body: SingleChildScrollView(
+            child: Consumer<ProductProvider>(
+              builder: (context, productProvider, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        children: [
+                          filterBtn(),
+                          const SizedBox(width: 16,),
+                          Flexible(child: search())
+                        ],
+                      ),
                     ),
-                  ),
-                  productProvider.productByCategory.isEmpty
-                      ? productNotFound()
-                      : content(productProvider)
-                ],
-              );
-            }
-          )
-      )
+                    productProvider.loading || !productProvider.setSizeDone
+                      ? loadingWidget()
+                      : productProvider.products.isEmpty
+                        ? productNotFound()
+                        : allProducts()
+                  ],
+                );
+              }
+            )
+        )
+      ),
     );
   }
 }
