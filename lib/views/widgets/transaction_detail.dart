@@ -13,6 +13,9 @@ import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_detail
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_status_label.dart';
 
 import '../../models/transaction_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/notification_service.dart';
+import '../pickup_confirmation_page.dart';
 
 class TransactionDetail extends StatefulWidget {
   final TransactionModel transactions;
@@ -330,6 +333,16 @@ class _TransactionDetailState extends State<TransactionDetail> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('Transaksi berhasil diselesaikan'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
         );
+        //get fcm token owner
+        await context.read<AuthProvider>().getFcmTokenOwner();
+        //send notification to owner
+        if(context.read<AuthProvider>().fcmTokenOwner != null) {
+          NotificationService().sendFcm(
+              title: '${widget.transactions.invoiceCode} sudah diselesaikan',
+              body: null,
+              fcmToken: context.read<AuthProvider>().fcmTokenOwner!
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('Transaksi gagal diselesaikan'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
@@ -337,7 +350,10 @@ class _TransactionDetailState extends State<TransactionDetail> {
       }
     }
 
-    Widget changeStatusBtn() {
+    Widget changeStatusBtn({
+      required String statusText,
+      required VoidCallback onClick
+    }) {
       return Container(
        decoration: BoxDecoration(
          color: Colors.white,
@@ -347,12 +363,36 @@ class _TransactionDetailState extends State<TransactionDetail> {
         ),
         padding: const EdgeInsets.all(20),
         child: DoneButton(
-          text: 'Selesaikan Pesanan',
-          onClick: () {
-            handleUpdateStatusToDone();
-          },
+          text: statusText,
+          onClick: onClick
         )
       );
+    }
+
+    transUpdateBtn(String status) {
+      switch (status.toLowerCase()) {
+        case 'arrived': //pesan antar tiba di tujuan
+          return changeStatusBtn(
+            statusText: 'Selesai',
+            onClick: () {
+              //updateStatus to done
+              handleUpdateStatusToDone();
+            },
+          );
+        case 'ready to take':
+          return changeStatusBtn(
+            statusText: 'Ambil Pesanan',
+            onClick: () {
+              //navigator push ke page konfirmasi (isi kode pickup)
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PickupConfirmationPage(
+                transactionId: widget.transactions.id,
+                invoiceCode: widget.transactions.invoiceCode,
+              )));
+            },
+          );
+        default:
+          return const SizedBox();
+      }
     }
 
     Widget content() {
@@ -387,7 +427,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         return Scaffold(
             appBar: customAppBar(text: 'Detail Riwayat Transaksi'),
             body: shopInfoProv.loadingGetShopInfo ? loadingWidget() : content(),
-            bottomNavigationBar: widget.transactions.transactionStatus.toLowerCase() == 'arrived' ? changeStatusBtn() : const SizedBox()
+            bottomNavigationBar: transUpdateBtn(widget.transactions.transactionStatus)
         );
       }
     );

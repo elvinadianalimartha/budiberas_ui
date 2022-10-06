@@ -10,6 +10,8 @@ import 'package:skripsi_budiberas_9701/views/widgets/reusable/trans_update_butto
 import 'package:skripsi_budiberas_9701/views/widgets/reusable/transaction_status_label.dart';
 import 'package:skripsi_budiberas_9701/views/widgets/transaction_detail.dart';
 
+import '../../providers/auth_provider.dart';
+import '../../services/notification_service.dart';
 import '../../theme.dart';
 
 class TransactionCard extends StatelessWidget {
@@ -117,13 +119,21 @@ class TransactionCard extends StatelessWidget {
       );
     }
 
-    handleUpdateStatusToDone({
-      required String status,
-    }) async {
-      if(await context.read<TransactionProvider>().updateStatusTransaction(id: transactions.id, newStatus: status)) {
+    handleUpdateStatusToDone() async {
+      if(await context.read<TransactionProvider>().updateStatusTransaction(id: transactions.id, newStatus: 'done')) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('Transaksi berhasil diselesaikan'), backgroundColor: secondaryColor, duration: const Duration(seconds: 2),),
         );
+        //get fcm token owner
+        await context.read<AuthProvider>().getFcmTokenOwner();
+        //send notification to owner
+        if(context.read<AuthProvider>().fcmTokenOwner != null) {
+          NotificationService().sendFcm(
+              title: '${transactions.invoiceCode} sudah diselesaikan',
+              body: null,
+              fcmToken: context.read<AuthProvider>().fcmTokenOwner!
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text('Transaksi gagal diselesaikan'), backgroundColor: alertColor, duration: const Duration(seconds: 2),),
@@ -138,7 +148,7 @@ class TransactionCard extends StatelessWidget {
             text: 'Selesai',
             onClick: () {
               //updateStatus to done
-              handleUpdateStatusToDone(status: 'done');
+              handleUpdateStatusToDone();
             },
           );
         case 'ready to take':
